@@ -56,7 +56,7 @@ namespace AdventOfCode2018
 
             string currentHeader = null;
             var statusChanges = new List<int>();
-            foreach (var item in orderedEvents.Concat(new[] { "#" })
+            foreach (var item in orderedEvents.Concat(new[] { "#" }))
                 if (item.Contains('#'))
                 {
                     if (currentHeader != null)
