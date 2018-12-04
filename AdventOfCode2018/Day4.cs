@@ -18,7 +18,7 @@ namespace AdventOfCode2018
             return (mostSleepingGuard.Key * GetMostSleptMinute(mostSleepingGuard).minute).ToString();
         }
 
-        public string PartTwo(string [] lines)
+        public string PartTwo(string[] lines)
         {
             var mostOverlappingGuard = (from timeline in GetTimelines(lines)
                                         group timeline by timeline.GuardId into guardData
@@ -56,7 +56,7 @@ namespace AdventOfCode2018
 
             string currentHeader = null;
             var statusChanges = new List<int>();
-            foreach (var item in orderedEvents)
+            foreach (var item in orderedEvents.Concat(new[] { "#" })
                 if (item.Contains('#'))
                 {
                     if (currentHeader != null)
