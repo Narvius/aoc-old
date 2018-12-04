@@ -59,7 +59,7 @@ namespace AdventOfCode2018
         public (int x, int y) Offset { get; }
         public (int x, int y) Size { get; }
 
-        private static readonly Regex ParseRegex = new Regex(@"^#(\d+)\s@\s(\d+),(\d+):\s(\d+)x(\d+)$");
+        private static readonly Regex LineParse = new Regex(@"^#(\d+)\s@\s(\d+),(\d+):\s(\d+)x(\d+)$");
 
         public Claim(int id, (int x, int y) offset, (int x, int y) size)
         {
@@ -70,7 +70,7 @@ namespace AdventOfCode2018
 
         public static Claim FromInput(string input)
         {
-            var match = ParseRegex.Match(input);
+            var match = LineParse.Match(input);
             if (!match.Success)
                 throw new ArgumentException("invalid format", nameof(input));
 
