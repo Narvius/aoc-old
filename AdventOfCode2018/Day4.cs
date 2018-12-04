@@ -60,7 +60,7 @@ namespace AdventOfCode2018
                 if (item.Contains('#'))
                 {
                     if (currentHeader != null)
-                        yield return new GuardTimeline(ExtractGuardId(currentHeader), ReadDate(currentHeader), statusChanges);
+                        yield return new GuardTimeline(ExtractGuardId(currentHeader), statusChanges);
                     statusChanges.Clear();
                     currentHeader = item;
                 }
@@ -69,50 +69,25 @@ namespace AdventOfCode2018
         }
 
         private static readonly Regex GuardParse = new Regex(@"\#(\d+)");
-        private static readonly Regex DateParse = new Regex(@"\[(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2})\]");
         private static readonly Regex MinuteParse = new Regex(@"(\d{2})\]");
 
         private int ExtractMinutes(string raw)
             => int.Parse(MinuteParse.Match(raw).Groups[1].Value);
 
         private int ExtractGuardId(string raw)
-        {
-            var match = GuardParse.Match(raw);
-            if (!match.Success)
-                throw new ArgumentException("invalid format", nameof(raw));
-
-            return int.Parse(match.Groups[1].Value);
-        }
-
-        private (int year, int month, int day) ReadDate(string raw)
-        {
-            var match = DateParse.Match(raw);
-            if (!match.Success)
-                throw new ArgumentException("invalid format", nameof(raw));
-
-            var trueDate = new DateTime(
-                int.Parse(match.Groups[1].Value),
-                int.Parse(match.Groups[2].Value),
-                int.Parse(match.Groups[3].Value));
-
-            if (match.Groups[4].Value == "23")
-                trueDate = trueDate.Add(TimeSpan.FromDays(1));
-
-            return (trueDate.Year, trueDate.Month, trueDate.Day);
-        }
+            => int.Parse(GuardParse.Match(raw).Groups[1].Value);
     }
 
     public class GuardTimeline
     {
         public int GuardId { get; }
-        public (int year, int month, int day) Date { get; }
         public IEnumerable<int> StatusChanges { get; }
 
         public int SleepingMinutes()
         {
             int result = 0;
             int? sleepingSince = null;
-            foreach (var change in StatusChanges)
+            foreach (var change in StatusChanges.Concat(new[] { 60 }))
                 if (sleepingSince.HasValue)
                 {
                     result += (change - sleepingSince.Value);
@@ -121,16 +96,12 @@ namespace AdventOfCode2018
                 else
                     sleepingSince = change;
 
-            if (sleepingSince.HasValue)
-                result += (60 - sleepingSince.Value);
-
             return result;
         }
 
-        public GuardTimeline(int guardId, (int year, int month, int day) date, IEnumerable<int> statusChanges)
+        public GuardTimeline(int guardId, IEnumerable<int> statusChanges)
         {
             GuardId = guardId;
-            Date = date;
             StatusChanges = new List<int>(statusChanges);
         }
     }
