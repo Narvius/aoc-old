@@ -7,6 +7,7 @@ namespace AdventOfCode2018
 {
     public class Day2 : ISolution
     {
+        // Count the number of lines that match a specific condition. Twice. Then multiply those two counts.
         public string PartOne(string[] lines)
         {
             var boxes = (from line in lines
@@ -17,6 +18,7 @@ namespace AdventOfCode2018
             return (boxes.Count(b => b.Item1) * boxes.Count(b => b.Item2)).ToString();
         }
 
+        // Find two strings that match in all but one spots, and return a string that contains everything but that one spot.
         public string PartTwo(string[] lines)
         {
             int Similarity(string a, string b)

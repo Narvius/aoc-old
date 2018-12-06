@@ -19,6 +19,8 @@ namespace AdventOfCode2018
 
         public int As1D(int width) => Y * width + X;
 
+        public int ManhattanDistance(Point p) => Math.Abs(X - p.X) + Math.Abs(Y - p.Y);
+
         public static implicit operator Point((int x, int y) p) => new Point(p.x, p.y);
 
         public bool Equals(Point other) => X == other.X && Y == other.Y;

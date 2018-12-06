@@ -13,22 +13,27 @@ namespace AdventOfCode2018
         const int Width = 1000;
         const int Height = 1000;
 
+        // Count the number of tiles with more than one tile to them.
         public string PartOne(string[] lines)
             => GetField(lines.Select(Claim.FromInput))
             .Count(x => x > 1)
             .ToString();
 
-
+        // Find the one claim that doesn't overlap with any other.
+        // That is, the one for which there is 1 claim on all tiles it claims.
         public string PartTwo(string[] lines)
         {
             var claims = lines.Select(Claim.FromInput).ToList();
             var field = GetField(claims);
             return (from claim in claims
+                    // Here, the Rectangle type (claim.Area) is treated as a collection of all points it contains.
                     let nonoverlapping = claim.Area.All(p => field[p.As1D(Width)] == 1)
                     where nonoverlapping
                     select claim.Id).Single().ToString();
         }
 
+        // Returns a [Width x Height] array which, indexed by [x, y] returns the number of claims to that tile.
+        // Note that the 2D array is flattened into 1D so it's easier to iterate over.
         private int[] GetField(IEnumerable<Claim> claims)
         {
             var field = new int[Width * Height];

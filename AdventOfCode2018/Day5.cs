@@ -7,9 +7,12 @@ namespace AdventOfCode2018
 {
     public class Day5 : ISolution
     {
+        // Fully collapse the string according to the rules.
         public string PartOne(string[] lines)
             => FullyReact(lines[0]).Length.ToString();
 
+        // Fully collapse 26 versions of the string (each time with a different letter removed).
+        // Find the length of the shortest one.
         public string PartTwo(string[] lines)
         {
             var shortest = (from letter in "abcdefghijklmnopqrstuvwxyz"
@@ -21,6 +24,7 @@ namespace AdventOfCode2018
             return shortest.ToString();
         }
 
+        // Returns the string as it would be fully collapsed according to the rules.
         private string FullyReact(string s)
         {
             int? position = null;
@@ -33,6 +37,8 @@ namespace AdventOfCode2018
             }
         }
 
+        // Returns the position of the left element in the leftmost reaction pair.
+        // The second argument is used for performance reasons, to skip iterating over the "cleared" part of the string.
         private int? GetReactionPosition(string s, int? start = null)
         {
             int i = Math.Max(0, (start ?? 1) - 1);

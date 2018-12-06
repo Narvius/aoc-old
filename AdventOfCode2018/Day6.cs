@@ -7,106 +7,111 @@ namespace AdventOfCode2018
 {
     public class Day6 : ISolution
     {
+        // Flood-fill a 2D map from a number of starting point.
+        // See which point claimed the highest area, and return the size of that area.
         public string PartOne(string[] lines)
-        {
-            var map = new FloodFillMap(400, 400, from line in lines
-                                                 let data = line.Split(", ")
-                                                 select new Point(int.Parse(data[0]), int.Parse(data[1])));
+            => new FloodFillMap(400, 400, from line in lines
+                                          let data = line.Split(", ")
+                                          select new Point(int.Parse(data[0]), int.Parse(data[1])))
+            .LargestSurface()
+            .ToString();
 
-            while (map.FillStep()) ;
-
-            return map.Surfaces().Max(x => x.Value).ToString();
-        }
-
+        // For each point on the grid, check the sum of the Manhattan distances to all the starting points.
+        // Count the number of elements that are smaller than a constant.
         public string PartTwo(string[] lines)
         {
+            const int distance = 10000;
+
             var points = (from line in lines
                           let data = line.Split(", ")
                           select new Point(int.Parse(data[0]), int.Parse(data[1])))
                           .ToList();
 
-            const int distance = 10000;
-
-            int count = 0;
-            for (int x = -100; x < 500; x++)
-                for (int y = -100; y < 500; y++)
-                    if (points.Sum(p => Math.Abs(p.X - x) + Math.Abs(p.Y - y)) < distance)
-                        count++;
-
-            return count.ToString();
+            return (from p in new Rectangle(-100, -100, 600, 600)
+                    where points.Sum(p.ManhattanDistance) < distance
+                    select 1).Sum().ToString();
         }
     }
 
+    // Given a size and number of starting points, performs a flood fill in that plane.
+    // Each point expands at the same speed, orthogonally.
+    // Also keeps track of which points expand "infinitely" (== touch the edge).
     public class FloodFillMap
     {
         public int Width, Height;
+
+        // The actual 2D array. It's flattened to a 1D array to be easier to iterate over.
         private int[] buffer;
-        private List<Point> seeds;
+
+        // The indices of starting points that ended up "going infinite" (touching the edge).
         private HashSet<int> infinites = new HashSet<int>();
 
+        // The number of starting points.
         private readonly int startSeedCount;
 
         private const int Empty = -1;
         private const int Contested = -2;
 
-        public FloodFillMap(int width, int height, IEnumerable<Point> seeds)
+        public FloodFillMap(int width, int height, IEnumerable<Point> startSeeds)
         {
             Width = width;
             Height = height;
             buffer = new int[width * height];
             Array.Fill(buffer, Empty);
-            this.seeds = new List<Point>(seeds);
-            startSeedCount = this.seeds.Count;
+
+            var seeds = startSeeds.ToList();
+            startSeedCount = seeds.Count;
 
             int x = 0;
-            foreach (var pos in seeds)
-                Set(pos, x++);
+            foreach (var pos in startSeeds)
+                buffer[pos.As1D(Width)] = x++;
+
+            while (seeds.Any())
+                seeds = FloodFillStep(seeds);
         }
 
-        public int this[int x, int y] => Get((x, y));
+        // The size of the largest area that is not "infinite".
+        public int LargestSurface()
+            => Enumerable.Range(0, startSeedCount)
+            .Select(x => infinites.Contains(x) ? -1 : buffer.Count(b => b == x))
+            .Max();
 
-        public Dictionary<int, int> Surfaces()
-        {
-            var result = new Dictionary<int, int>();
-            for (int i = 0; i < startSeedCount; i++)
-                result[i] = infinites.Contains(i)
-                    ? -1
-                    : buffer.Count(x => x == i);
-            return result;
-        }
-
-        public bool FillStep()
+        // Performs a single step of floodfill (from the "seeds"), and returns a list of new seeds.
+        // New seeds are tiles that are 1) freshly-filled 2) not contested.
+        // A tile is contested if multiple flood fills reach it simultaneously.
+        private List<Point> FloodFillStep(List<Point> seeds)
         {
             var changes = new HashSet<Point>();
             var newSeeds = new List<Point>();
+
             foreach (var seed in seeds)
             {
-                var c = Get(seed);
+                var c = buffer[seed.As1D(Width)];
 
                 if (seed.X == 0 || seed.X == Width - 1 || seed.Y == 0 || seed.Y == Height - 1)
                     infinites.Add(c);
 
                 foreach (var neighbour in Neighbours(seed))
                 {
-                    var dc = Get(neighbour);
+                    var dc = buffer[neighbour.As1D(Width)];
                     if (dc == Empty)
                     {
-                        Set(neighbour, c);
+                        buffer[neighbour.As1D(Width)] = c;
                         changes.Add(neighbour);
                         newSeeds.Add(neighbour);
                     }
                     else if (dc != c && changes.Contains(neighbour))
                     {
-                        Set(neighbour, Contested);
+                        buffer[neighbour.As1D(Width)] = Contested;
                         newSeeds.Remove(neighbour);
                     }
                 }
             }
 
-            seeds = newSeeds;
-            return seeds.Any();
+            return newSeeds;
         }
 
+        // A list of all in-bounds neighbours.
         private IEnumerable<Point> Neighbours(Point p)
         {
             if (p.X > 0)
@@ -118,8 +123,5 @@ namespace AdventOfCode2018
             if (p.Y < (Height - 1))
                 yield return p + (0, 1);
         }
-
-        private void Set(Point p, int c) => buffer[p.Y * Width + p.X] = c;
-        private int Get(Point p) => buffer[p.Y * Width + p.X];
     }
 }

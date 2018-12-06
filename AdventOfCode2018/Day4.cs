@@ -8,9 +8,10 @@ namespace AdventOfCode2018
 {
     public class Day4 : ISolution
     {
+        // Find the guard that slept the most, and which specific minute they slept on the most.
         public string PartOne(string[] lines)
         {
-            var mostSleepingGuard = (from timeline in GetTimelines(lines)
+            var mostSleepingGuard = (from timeline in GetShifts(lines)
                                      group timeline by timeline.GuardId into guardData
                                      orderby guardData.Sum(t => t.SleepingMinutes()) descending
                                      select guardData).First();
@@ -18,10 +19,11 @@ namespace AdventOfCode2018
             return (mostSleepingGuard.Key * GetMostSleptMinute(mostSleepingGuard).minute).ToString();
         }
 
+        // Find the guard with the highest specific single minute slept on, and which minute that is.
         public string PartTwo(string[] lines)
         {
-            var mostOverlappingGuard = (from timeline in GetTimelines(lines)
-                                        group timeline by timeline.GuardId into guardData
+            var mostOverlappingGuard = (from shift in GetShifts(lines)
+                                        group shift by shift.GuardId into guardData
                                         let info = GetMostSleptMinute(guardData)
                                         orderby info.amount descending
                                         select (id: guardData.Key, minute: info.minute)).First();
@@ -29,12 +31,13 @@ namespace AdventOfCode2018
             return (mostOverlappingGuard.id * mostOverlappingGuard.minute).ToString();
         }
 
-        private (int minute, int amount) GetMostSleptMinute(IEnumerable<GuardTimeline> timelines)
+        // Given all shifts of one guard, returns the single minute between 12:00am and 0:59am the guard was asleep on the most often.
+        private (int minute, int amount) GetMostSleptMinute(IEnumerable<GuardShift> shifts)
         {
             int[] hour = new int[60];
-            foreach (var timeline in timelines)
+            foreach (var shift in shifts)
             {
-                var changes = timeline.StatusChanges.ToHashSet();
+                var changes = shift.StatusChanges.ToHashSet();
                 var sleeping = false;
                 for (int i = 0; i < 60; i++)
                 {
@@ -48,7 +51,8 @@ namespace AdventOfCode2018
             return (Array.IndexOf(hour, max), max);
         }
 
-        private IEnumerable<GuardTimeline> GetTimelines(string[] rawEntries)
+        // Returns a list of all recorded shifts, unordered/ungrouped.
+        private IEnumerable<GuardShift> GetShifts(string[] rawEntries)
         {
             var orderedEvents = from line in rawEntries
                                 orderby line.Substring(0, 18)
@@ -60,7 +64,7 @@ namespace AdventOfCode2018
                 if (item.Contains('#'))
                 {
                     if (currentHeader != null)
-                        yield return new GuardTimeline(ExtractGuardId(currentHeader), statusChanges);
+                        yield return new GuardShift(ExtractGuardId(currentHeader), statusChanges);
                     statusChanges.Clear();
                     currentHeader = item;
                 }
@@ -78,11 +82,13 @@ namespace AdventOfCode2018
             => int.Parse(GuardParse.Match(raw).Groups[1].Value);
     }
 
-    public class GuardTimeline
+    // Represents a single shift by a single guard.
+    public class GuardShift
     {
         public int GuardId { get; }
         public IEnumerable<int> StatusChanges { get; }
 
+        // Returns the total number of minutes spent asleep during this shift.
         public int SleepingMinutes()
         {
             int result = 0;
@@ -99,7 +105,7 @@ namespace AdventOfCode2018
             return result;
         }
 
-        public GuardTimeline(int guardId, IEnumerable<int> statusChanges)
+        public GuardShift(int guardId, IEnumerable<int> statusChanges)
         {
             GuardId = guardId;
             StatusChanges = new List<int>(statusChanges);

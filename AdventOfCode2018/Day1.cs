@@ -7,9 +7,12 @@ namespace AdventOfCode2018
 {
     public class Day1 : ISolution
     {
+        // Literally just sum the input.
         public string PartOne(string[] lines)
             => lines.Select(int.Parse).Sum().ToString();
 
+        // Loop the input forever, and keep a record of all running tallies along the way.
+        // Return the first running tally that repeats.
         public string PartTwo(string[] lines)
         {
             IEnumerable<int> ChangesForever()
