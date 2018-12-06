@@ -7,7 +7,7 @@ namespace AdventOfCode2018
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Solve<Day5>());
+            Console.WriteLine(Solve<Day6>());
             Console.ReadKey();
         }
 
@@ -19,7 +19,11 @@ namespace AdventOfCode2018
 
             var contents = File.ReadAllLines(filename);
 
-            return (instance.PartOne(contents), instance.PartTwo(contents));
+            string a = "", b = "";
+            try { a = instance.PartOne(contents); } catch (NotImplementedException) { } catch (Exception ex) { Console.WriteLine(ex); }
+            try { b = instance.PartTwo(contents); } catch (NotImplementedException) { } catch (Exception ex) { Console.WriteLine(ex); }
+
+            return (a, b);
         }
     }
 }
