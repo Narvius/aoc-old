@@ -17,6 +17,8 @@ namespace AdventOfCode2018
 
         public static Point operator +(Point lhs, Point rhs) => new Point(lhs.X + rhs.X, lhs.Y + rhs.Y);
 
+        public int As1D(int width) => Y * width + X;
+
         public static implicit operator Point((int x, int y) p) => new Point(p.x, p.y);
 
         public bool Equals(Point other) => X == other.X && Y == other.Y;

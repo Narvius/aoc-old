@@ -13,21 +13,6 @@ namespace AdventOfCode2018
         const int Width = 1000;
         const int Height = 1000;
 
-        private int[] GetField(IEnumerable<Claim> claims)
-        {
-            var field = new int[Width * Height];
-            foreach (var claim in claims)
-                for (int cy = 0; cy < claim.Size.y; cy++)
-                    for (int cx = 0; cx < claim.Size.x; cx++)
-                    {
-                        var x = claim.Offset.x + cx;
-                        var y = claim.Offset.y + cy;
-                        field[Width * y + x]++;
-                    }
-
-            return field;
-        }
-
         public string PartOne(string[] lines)
             => GetField(lines.Select(Claim.FromInput))
             .Count(x => x > 1)
@@ -38,34 +23,33 @@ namespace AdventOfCode2018
         {
             var claims = lines.Select(Claim.FromInput).ToList();
             var field = GetField(claims);
+            return (from claim in claims
+                    let nonoverlapping = claim.Area.All(p => field[p.As1D(Width)] == 1)
+                    where nonoverlapping
+                    select claim.Id).Single().ToString();
+        }
 
-            bool Nonoverlapping(Claim claim)
-            {
-                for (int y = 0; y < claim.Size.y; y++)
-                    for (int x = 0; x < claim.Size.x; x++)
-                        if (field[(claim.Offset.y + y) * Width + claim.Offset.x + x] != 1)
-                            return false;
-
-                return true;
-            }
-
-            return claims.First(Nonoverlapping).Id.ToString();
+        private int[] GetField(IEnumerable<Claim> claims)
+        {
+            var field = new int[Width * Height];
+            foreach (var claim in claims)
+                foreach (var point in claim.Area)
+                    field[point.As1D(Width)]++;
+            return field;
         }
     }
 
     public class Claim
     {
         public int Id { get; }
-        public (int x, int y) Offset { get; }
-        public (int x, int y) Size { get; }
+        public Rectangle Area { get; }
 
         private static readonly Regex LineParse = new Regex(@"^#(\d+)\s@\s(\d+),(\d+):\s(\d+)x(\d+)$");
 
-        public Claim(int id, (int x, int y) offset, (int x, int y) size)
+        public Claim(int id, Rectangle area)
         {
             Id = id;
-            Offset = offset;
-            Size = size;
+            Area = area;
         }
 
         public static Claim FromInput(string input)
@@ -76,8 +60,11 @@ namespace AdventOfCode2018
 
             return new Claim(
                 int.Parse(match.Groups[1].Value),
-                (int.Parse(match.Groups[2].Value), int.Parse(match.Groups[3].Value)),
-                (int.Parse(match.Groups[4].Value), int.Parse(match.Groups[5].Value)));
+                new Rectangle(
+                    int.Parse(match.Groups[2].Value),
+                    int.Parse(match.Groups[3].Value),
+                    int.Parse(match.Groups[4].Value),
+                    int.Parse(match.Groups[5].Value)));
         }
     }
 }
