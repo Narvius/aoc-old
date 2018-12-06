@@ -49,20 +49,19 @@ namespace AdventOfCode2018
         // The number of starting points.
         private readonly int startSeedCount;
 
-        private const int Empty = -1;
-        private const int Contested = -2;
+        private const int Empty = 0;
+        private const int Contested = -1;
 
         public FloodFillMap(int width, int height, IEnumerable<Point> startSeeds)
         {
             Width = width;
             Height = height;
             buffer = new int[width * height];
-            Array.Fill(buffer, Empty);
 
             var seeds = startSeeds.ToList();
             startSeedCount = seeds.Count;
 
-            int x = 0;
+            int x = 1;
             foreach (var pos in startSeeds)
                 buffer[pos.As1D(Width)] = x++;
 
@@ -72,7 +71,7 @@ namespace AdventOfCode2018
 
         // The size of the largest area that is not "infinite".
         public int LargestSurface()
-            => Enumerable.Range(0, startSeedCount)
+            => Enumerable.Range(1, startSeedCount)
             .Select(x => infinites.Contains(x) ? -1 : buffer.Count(b => b == x))
             .Max();
 
