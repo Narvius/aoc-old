@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,12 +13,16 @@ namespace AdventOfCode2018
         {
             var starfield = new Starfield(lines.Select(Star.Parse));
             starfield.StepUntilLikelyCandidate();
-            starfield.Interactive();
 
-            return "<manually scan for the answer>";
+            return $"{Environment.NewLine}{starfield.PrintField()}";
         }
 
-        public string PartTwo(string[] lines) => "<manually scan for the answer>";
+        public string PartTwo(string[] lines)
+        {
+            var starfield = new Starfield(lines.Select(Star.Parse));
+            starfield.StepUntilLikelyCandidate();
+            return starfield.CurrentStep.ToString();
+        }
     }
 
     // Represents a single light (position and velocity pair).
@@ -46,7 +51,7 @@ namespace AdventOfCode2018
     public class Starfield
     {
         private readonly List<Star> Stars;
-        private int stepCount = 0;
+        public int CurrentStep { get; private set; }
 
         public Starfield(IEnumerable<Star> stars)
         {
@@ -58,7 +63,7 @@ namespace AdventOfCode2018
         {
             foreach (var star in Stars)
                 star.Position += star.Velocity;
-            stepCount++;
+            CurrentStep++;
         }
 
         // Rolls the simulation back by one step.
@@ -66,30 +71,54 @@ namespace AdventOfCode2018
         {
             foreach (var star in Stars)
                 star.Position -= star.Velocity;
-            stepCount--;
+            CurrentStep--;
         }
 
         // Advance the starfield until a likely candidate frame.
-        // This is done by finding the first instance of the sum of distances to first light INCREASING rather than decreasing.
+        // This is done by finding the first step on which the bounding rectangle is minimal.
         public void StepUntilLikelyCandidate()
         {
-            int a = 0, b = DistanceSum();
+            int a = 0, b = BoundingRect().Area;
             do
             {
                 a = b;
                 Step();
-                b = DistanceSum();
+                b = BoundingRect().Area;
             }
             while ((b - a) < 0);
+            StepBack();
         }
         
-        // The sum of distances to the first light.
-        public int DistanceSum()
-            => Stars.Sum(s => Stars[0].Position.ManhattanDistance(s.Position));
+        // The smallest rectangle that contains all lights.
+        public Rectangle BoundingRect()
+            => Rectangle.FromLTRB(
+                Stars.Min(s => s.Position.X),
+                Stars.Min(s => s.Position.Y),
+                Stars.Max(s => s.Position.X),
+                Stars.Max(s => s.Position.Y));
 
         // The light at the given position.
         public Star ByPosition(Point p)
             => Stars.FirstOrDefault(s => s.Position == p);
+
+        public string PrintField()
+        {
+            var rect = BoundingRect();
+
+            using (var stream = new MemoryStream())
+            using (var sw = new StreamWriter(stream))
+            {
+                for (int y = 0; y <= rect.H; y++)
+                {
+                    for (int x = 0; x <= rect.W; x++)
+                        sw.Write(ByPosition((rect.X + x, rect.Y + y)) != null ? "#" : ".");
+                    sw.WriteLine();
+                }
+                sw.Flush();
+
+                return new string(Encoding.ASCII.GetString(stream.ToArray()));
+            }
+        }
 
         // Allows the user to step through the simulation forward and back,
         // and prints out the most relevant rectangle of it.
@@ -101,13 +130,8 @@ namespace AdventOfCode2018
             while (true)
             {
                 Console.Clear();
-                for (int y = 0; y < 25; y++)
-                {
-                    for (int x = 0; x < 80; x++)
-                        Console.Write(ByPosition((left + x, top + y)) != null ? "#" : ".");
-                    Console.WriteLine();
-                }
-                Console.WriteLine($"Steps: {stepCount}");
+                
+                Console.WriteLine($"Steps: {CurrentStep}");
 
                 switch (Console.ReadKey().Key)
                 {
