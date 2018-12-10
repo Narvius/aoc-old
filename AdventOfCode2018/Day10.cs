@@ -101,7 +101,7 @@ namespace AdventOfCode2018
 
         // The light at the given position.
         public bool StarInPosition(int x, int y)
-            => Stars.Any(s => s.Position == p);
+            => Stars.Any(s => s.Position == (x, y));
 
         public string PrintField()
         {
@@ -113,7 +113,7 @@ namespace AdventOfCode2018
                 for (int y = 0; y <= rect.H; y++)
                 {
                     for (int x = 0; x <= rect.W; x++)
-                        sw.Write(StarInPosition(rect.X + x, rect.Y + y) != null ? "#" : ".");
+                        sw.Write(StarInPosition(rect.X + x, rect.Y + y) ? "#" : ".");
                     sw.WriteLine();
                 }
                 sw.Flush();
