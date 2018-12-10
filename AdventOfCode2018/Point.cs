@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace AdventOfCode2018
 {
+    [DebuggerDisplay("P({X}, {Y})")]
     public struct Point : IEquatable<Point>
     {
         public int X { get; }
@@ -16,6 +18,9 @@ namespace AdventOfCode2018
         }
 
         public static Point operator +(Point lhs, Point rhs) => new Point(lhs.X + rhs.X, lhs.Y + rhs.Y);
+        public static Point operator -(Point lhs, Point rhs) => new Point(lhs.X - rhs.X, lhs.Y - rhs.Y);
+        public static bool operator ==(Point lhs, Point rhs) => lhs.Equals(rhs);
+        public static bool operator !=(Point lhs, Point rhs) => !lhs.Equals(rhs);
 
         public int As1D(int width) => Y * width + X;
 
