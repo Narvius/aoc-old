@@ -119,28 +119,5 @@ namespace AdventOfCode2018
                 return new string(Encoding.ASCII.GetString(stream.ToArray()));
             }
         }
-
-        // Allows the user to step through the simulation forward and back,
-        // and prints out the most relevant rectangle of it.
-        public void Interactive()
-        {
-            var left = Stars.Min(s => s.Position.X);
-            var top = Stars.Min(s => s.Position.Y);
-
-            while (true)
-            {
-                Console.Clear();
-                
-                Console.WriteLine($"Steps: {CurrentStep}");
-
-                switch (Console.ReadKey().Key)
-                {
-                    case ConsoleKey.LeftArrow: StepBack(); break;
-                    case ConsoleKey.RightArrow: Step(); break;
-                    case ConsoleKey.Escape: return;
-                    default: break;
-                }
-            }
-        }
     }
 }
