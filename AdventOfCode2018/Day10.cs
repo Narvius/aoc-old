@@ -9,6 +9,7 @@ namespace AdventOfCode2018
 {
     public class Day10 : ISolution
     {
+        // Find the message.
         public string PartOne(string[] lines)
         {
             var starfield = new Starfield(lines.Select(Star.Parse));
@@ -17,6 +18,7 @@ namespace AdventOfCode2018
             return $"{Environment.NewLine}{starfield.PrintField()}";
         }
 
+        // Find the number of steps after which the message appears.
         public string PartTwo(string[] lines)
         {
             var starfield = new Starfield(lines.Select(Star.Parse));
