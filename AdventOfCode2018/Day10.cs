@@ -73,9 +73,7 @@ namespace AdventOfCode2018
         // This is done by finding the first instance of the sum of distances to first light INCREASING rather than decreasing.
         public void StepUntilLikelyCandidate()
         {
-            int a = DistanceSum(), b;
-            Step();
-            b = DistanceSum();
+            int a = 0, b = DistanceSum();
             do
             {
                 a = b;
