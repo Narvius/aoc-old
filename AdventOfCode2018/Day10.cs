@@ -100,8 +100,8 @@ namespace AdventOfCode2018
                 Stars.Max(s => s.Position.Y));
 
         // The light at the given position.
-        public Star ByPosition(Point p)
-            => Stars.FirstOrDefault(s => s.Position == p);
+        public bool StarInPosition(int x, int y)
+            => Stars.Any(s => s.Position == p);
 
         public string PrintField()
         {
@@ -113,12 +113,12 @@ namespace AdventOfCode2018
                 for (int y = 0; y <= rect.H; y++)
                 {
                     for (int x = 0; x <= rect.W; x++)
-                        sw.Write(ByPosition((rect.X + x, rect.Y + y)) != null ? "#" : ".");
+                        sw.Write(StarInPosition(rect.X + x, rect.Y + y) != null ? "#" : ".");
                     sw.WriteLine();
                 }
                 sw.Flush();
 
-                return new string(Encoding.ASCII.GetString(stream.ToArray()));
+                return Encoding.ASCII.GetString(stream.ToArray());
             }
         }
     }
