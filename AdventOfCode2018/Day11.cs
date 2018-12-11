@@ -23,11 +23,23 @@ namespace AdventOfCode2018
         public string PartTwo(string[] lines)
         {
             var serial = int.Parse(lines[0]);
-            var result = (from p in PointsOnGrid()
-                          from power in PowerLevels(p, serial)
-                          orderby power.power descending
-                          select (point: p, size: power.size)).First();
-            return $"{result.point.X},{result.point.Y},{result.size}";
+            var cellPowers = new int[300 * 300];
+            for (int i = 0; i < cellPowers.Length; i++)
+                cellPowers[i] = PowerLevel((1 + i % 300, 1 + i / 300), serial);
+
+            int highest = 0;
+            Point point = (0, 0);
+            int size = 0;
+            foreach (var p in PointsOnGrid())
+                foreach (var power in PowerLevels(p, cellPowers))
+                    if (power.power > highest)
+                    {
+                        highest = power.power;
+                        point = p;
+                        size = power.size;
+                    }
+
+            return $"{point.X},{point.Y},{size}";
         }
 
         // A list of all points on the 300x300 grid.
@@ -49,16 +61,18 @@ namespace AdventOfCode2018
                 select PowerLevel(point, serial)).Sum();
 
         // A list of the total power of each possible square at the given starting point.
-        private IEnumerable<(int size, int power)> PowerLevels(Point topleft, int serial)
+        private IEnumerable<(int size, int power)> PowerLevels(Point topleft, int[] cellPowers)
         {
             int result = 0;
-            for (int layer = 0; layer < MaxSquareSizeAtCoordinate(topleft); layer++)
+            int size = MaxSquareSizeAtCoordinate(topleft);
+            int index = (topleft - (1, 1)).As1D(300);
+            for (int layer = 0; layer < size; layer++)
             {
-                result += PowerLevel(topleft + (layer, layer), serial);
+                result += cellPowers[index + layer * 300 + layer];
                 for (int i = 0; i < layer; i++)
                 {
-                    result += PowerLevel(topleft + (layer, i), serial);
-                    result += PowerLevel(topleft + (i, layer), serial);
+                    result += cellPowers[index + layer * 300 + i];
+                    result += cellPowers[index + i * 300 + layer];
                 }
                 yield return (layer + 1, result);
             }
