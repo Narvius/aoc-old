@@ -7,7 +7,9 @@ namespace AdventOfCode2018
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Solve<Day7>());
+            var start = DateTime.UtcNow;
+            Console.WriteLine(Solve<Day11>());
+            Console.WriteLine($"...computed in {(DateTime.UtcNow - start).TotalSeconds:0.00s}.");
             Console.ReadKey();
         }
 

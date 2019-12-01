@@ -12,6 +12,8 @@ namespace AdventOfCode2018
         public int W { get; }
         public int H { get; }
 
+        public int Area => W * H;
+
         public Rectangle(int x, int y, int w, int h) : this()
         {
             X = x;
@@ -19,6 +21,9 @@ namespace AdventOfCode2018
             W = w;
             H = h;
         }
+
+        public static Rectangle FromLTRB(int left, int top, int right, int bottom)
+            => new Rectangle(left, top, right - left, bottom - top);
 
         private IEnumerable<Point> Points()
         {
