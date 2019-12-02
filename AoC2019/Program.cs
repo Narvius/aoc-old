@@ -7,7 +7,9 @@ namespace AoC2019
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Solve<Day1>());
+            var start = DateTime.UtcNow;
+            Console.WriteLine(Solve<Day2>());
+            Console.WriteLine($"...computed in {(DateTime.UtcNow - start).TotalSeconds:0.00s}.");
             Console.ReadKey();
         }
 
