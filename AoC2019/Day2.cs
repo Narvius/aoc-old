@@ -8,17 +8,17 @@ namespace AoC2019
     public class Day2 : ISolution
     {
         public string PartOne(string[] lines)
-            => new ShipComputer(lines[0], (1, 12), (2, 2)).RunUntilHalted().ToString();
+            => new ShipComputerV1(lines[0], (1, 12), (2, 2)).RunUntilHalted().ToString();
 
         public string PartTwo(string[] lines)
             => (from noun in Enumerable.Range(0, 100)
                 from verb in Enumerable.Range(0, 100)
-                let zero = new ShipComputer(lines[0], (1, noun), (2, verb)).RunUntilHalted()
+                let zero = new ShipComputerV1(lines[0], (1, noun), (2, verb)).RunUntilHalted()
                 where zero == 19690720
                 select 100 * noun + verb).First().ToString();
     }
 
-    public class ShipComputer
+    public class ShipComputerV1
     {
         private readonly int[] Memory;
         private int ProgramCounter = 0;
@@ -29,7 +29,7 @@ namespace AoC2019
             set => Memory[p] = value;
         }
 
-        public ShipComputer(string initial, params (int p, int v)[] overwrites)
+        public ShipComputerV1(string initial, params (int p, int v)[] overwrites)
         {
             Memory = initial.Split(',').Select(int.Parse).ToArray();
             foreach (var (p, v) in overwrites)
