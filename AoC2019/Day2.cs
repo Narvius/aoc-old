@@ -13,8 +13,8 @@ namespace AoC2019
         public string PartTwo(string[] lines)
             => (from noun in Enumerable.Range(0, 100)
                 from verb in Enumerable.Range(0, 100)
-                let zero = new ShipComputerV1(lines[0], (1, noun), (2, verb)).RunUntilHalted()
-                where zero == 19690720
+                let result = new ShipComputerV1(lines[0], (1, noun), (2, verb)).RunUntilHalted()
+                where result == 19690720
                 select 100 * noun + verb).First().ToString();
     }
 
@@ -22,12 +22,6 @@ namespace AoC2019
     {
         private readonly int[] Memory;
         private int ProgramCounter = 0;
-
-        public int this[int p]
-        {
-            get => Memory[p];
-            set => Memory[p] = value;
-        }
 
         public ShipComputerV1(string initial, params (int p, int v)[] overwrites)
         {
