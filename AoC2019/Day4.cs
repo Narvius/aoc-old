@@ -19,50 +19,34 @@ namespace AoC2019
             return CountInRange(lower, upper, MatchesStricterCriteria).ToString();
         }
 
-        private int CountInRange(int lower, int upper, Func<int, bool> criteria)
+        private int CountInRange(int lower, int upper, Func<string, bool> criteria)
         {
             int count = 0;
 
             // Ambiguous whether to include upper bound or not, but since the given upper
             // bound (746315) doesn't get counted either way, it doesn't matter.
             for (int i = lower; i < upper; i++)
-                if (criteria(i))
+                if (criteria(i.ToString()))
                     count++;
 
             return count;
         }
 
-        private bool MatchesCriteria(int input)
+        private bool MatchesCriteria(string input)
+            => MonotonicallyIncreasing(input) && DigitCounts(input).Any(count => count >= 2);
+
+        private bool MatchesStricterCriteria(string input)
+            => MonotonicallyIncreasing(input) && DigitCounts(input).Any(count => count == 2);
+
+        private bool MonotonicallyIncreasing(string input)
+            => input.Zip(input.Skip(1), (a, b) => a <= b).All(t => t);
+
+        private int[] DigitCounts(string input)
         {
-            char last = (char)('0' - 1);
-            bool hasDouble = false;
-
-            foreach (char c in input.ToString())
-            {
-                if (c == last) hasDouble = true;
-                if (c < last) return false;
-                last = c;
-            }
-
-            return hasDouble;
-        }
-
-        private bool MatchesStricterCriteria(int input)
-        {
-            var doubles = new HashSet<char>();
-            var triples = new HashSet<char>();
-
-            char last = (char)('0' - 1);
-
-            foreach (char c in input.ToString())
-            {
-                if (c == last) (doubles.Contains(c) ? triples : doubles).Add(c);
-                if (c < last) return false;
-                last = c;
-            }
-
-            doubles.ExceptWith(triples);
-            return doubles.Any();
+            var result = new int[10];
+            foreach (var c in input)
+                result[c - '0']++;
+            return result;
         }
 
         private void Bounds(string[] input, out int lower, out int upper)
