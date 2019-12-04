@@ -7,9 +7,12 @@ namespace AoC2019
 {
     public class Day2 : ISolution
     {
+        // Implement the virtual machine specified in the problem.
+        // Run it with the given initial state, and retrieve the output.
         public string PartOne(string[] lines)
             => new ShipComputerV1(lines[0], (1, 12), (2, 2)).RunUntilHalted().ToString();
 
+        // Find an initial setting for the virtual machine that returns a specific result.
         public string PartTwo(string[] lines)
             => (from noun in Enumerable.Range(0, 100)
                 from verb in Enumerable.Range(0, 100)

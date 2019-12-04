@@ -7,12 +7,14 @@ namespace AoC2019
 {
     public class Day4 : ISolution
     {
+        // Find all integers in a given range that match the criteria given in the problem description.
         public string PartOne(string[] lines)
         {
             Bounds(lines, out int lower, out int upper);
             return CountInRange(lower, upper, MatchesCriteria).ToString();
         }
 
+        // As part one, with a slightly stricter criterion added.
         public string PartTwo(string[] lines)
         {
             Bounds(lines, out int lower, out int upper);

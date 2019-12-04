@@ -7,6 +7,7 @@ namespace AoC2019
 {
     public class Day3 : ISolution
     {
+        // On a grid with two polylines, find the intersection that is closest to the origin (0, 0).
         public string PartOne(string[] lines)
         {
             var a = AllLinePoints(lines[0]);
@@ -20,6 +21,8 @@ namespace AoC2019
                     select distance).First().ToString();
         }
 
+        // On a grid with two polylines, find the intersection that forms the shortest loop
+        // with the polyline segments from (0, 0) to the intersection.
         public string PartTwo(string[] lines)
         {
             var a = AllLinePoints(lines[0]);
