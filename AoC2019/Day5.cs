@@ -31,9 +31,13 @@ namespace AoC2019
                 Memory[p] = v;
         }
 
+        // Runs the entire program loaded into the computer.
+        // Note that only as much of the program is evaluated as is necessary to produce the requested outputs.
         public IEnumerable<int> RunUntilHalted(params int[] inputs)
             => RunUntilHalted(inputs.AsEnumerable());
 
+        // Runs the entire program loaded into the computer.
+        // Note that only as much of the program is evaluated as is necessary to produce the requested outputs.
         public IEnumerable<int> RunUntilHalted(IEnumerable<int> inputs)
         {
             foreach (var input in inputs)
@@ -47,6 +51,7 @@ namespace AoC2019
             }
         }
 
+        // Executes the next instruction.
         private void RunOnce()
         {
             DecomposeOp(Memory[ProgramCounter], out Op code, out int mode1, out int mode2, out int mode3);
@@ -100,6 +105,7 @@ namespace AoC2019
             }
         }
 
+        // Reads a memory cell relative to the current program counter, and then resolves it, respecting the provided addressing mode.
         private int Read(int offset, int mode = 0)
         {
             int parameter = Memory[ProgramCounter + offset];
@@ -111,8 +117,12 @@ namespace AoC2019
             }
         }
 
+        // Write to the memory cell pointed to by the memory cell ahead by "offset" from the program counter.
         private void Write(int offset, int value) => Memory[Memory[ProgramCounter + offset]] = value;
 
+        // Takes apart an opcode of the shape EDCBA, where each letter corresponds to a digit.
+        // BA = two-digit operation code
+        // C, D, E = addressing mode for the first, second and third parameter, respectively
         private void DecomposeOp(int op, out Op code, out int mode1, out int mode2, out int mode3)
         {
             code = (Op)(op % 100);
