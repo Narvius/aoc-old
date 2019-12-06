@@ -26,8 +26,8 @@ namespace AoC2019
                         let split = line.Split(')')
                         select (key: split[1], value: split[0])).ToDictionary(kvp => kvp.key, kvp => kvp.value);
 
-            var mine = ParentList("YOU", data).ToList();
-            var his = ParentList("SAN", data).ToList();
+            var mine = PathToRoot("YOU", data).ToList();
+            var his = PathToRoot("SAN", data).ToList();
 
             var intersect = mine.Intersect(his).First();
 
@@ -42,7 +42,7 @@ namespace AoC2019
             return memoizedResults[planet];
         }
 
-        private IEnumerable<string> ParentList(string planet, Dictionary<string, string> data)
+        private IEnumerable<string> PathToRoot(string planet, Dictionary<string, string> data)
         {
             while (planet != "COM")
             {
