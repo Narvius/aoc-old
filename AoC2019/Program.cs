@@ -27,7 +27,7 @@ namespace AoC2019
             if (solution == null)
                 return (null, null);
 
-            var contents = File.ReadAllLines(dataFile);
+            var contents = File.ReadAllLines(Path.Combine("Data", dataFile));
 
             string a = "", b = "";
             try { a = solution.PartOne(contents); } catch (NotImplementedException) { } catch (Exception ex) { Console.WriteLine(ex); }

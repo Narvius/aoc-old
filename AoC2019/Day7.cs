@@ -30,11 +30,10 @@ namespace AoC2019
         private ShipComputerV3[] amplifiers;
 
         // Takes a "model" amplifier, which is copied to create instances, a "seed" (a number between 0 inclusive and
-        // 119 exclusive) which describes the phase settings, and a switch that, if true, links up the final amplifier
+        // 120 exclusive) which describes the phase settings, and a switch that, if true, links up the final amplifier
         // back with the first one (as well as adjusting the final phase settings to use feedback mode).
         public AmplifierSeries(ShipComputerV3 amplifierModel, int seed, bool withFeedback = false)
         {
-            var phaseSettings = PermutationFromIndex(seed);
             amplifiers = Enumerable.Repeat(0, 5).Select(_ => new ShipComputerV3(amplifierModel)).ToArray();
 
             for (int i = 0; i < 4; i++)
@@ -43,6 +42,7 @@ namespace AoC2019
             if (withFeedback)
                 amplifiers[4].OutputTo(amplifiers[0]);
 
+            var phaseSettings = PermutationFromIndex(seed);
             for (int i = 0; i < 5; i++)
                 amplifiers[i].Input.Enqueue(phaseSettings[i] + (withFeedback ? 5 : 0));
             amplifiers[0].Input.Enqueue(0);
