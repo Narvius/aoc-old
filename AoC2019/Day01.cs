@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day1 : ISolution
+    public class Day01 : ISolution
     {
         // Each input line is the mass of one component.
         // Calculate the total required fuel, as a function of component mass.

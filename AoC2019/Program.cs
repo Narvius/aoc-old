@@ -66,7 +66,7 @@ namespace AoC2019
 
                 for (int i = 0; i < 25; i++)
                     if (solutions[i] != null)
-                        yield return (solutions[i], $"Day{i + 1}.txt", $"Day {i + 1,-2} => ");
+                        yield return (solutions[i], $"Day{i + 1:00}.txt", $"Day {i + 1,-2} => ");
 
             }
             else if (!char.IsLower(c))
@@ -77,7 +77,7 @@ namespace AoC2019
                 Console.WriteLine($">> Selected latest (day {index + 1})");
                 Console.WriteLine();
 
-                yield return (solution, $"Day{index + 1}.txt", "");
+                yield return (solution, $"Day{index + 1:00}.txt", "");
             }
             else
             {
@@ -86,7 +86,7 @@ namespace AoC2019
 
                 var solution = solutions[c - 'a'];
                 if (solution != null)
-                    yield return (solution, $"Day{c - 'a' + 1}.txt", "");
+                    yield return (solution, $"Day{c - 'a' + 1:00}.txt", "");
             }
         }
 
@@ -95,7 +95,7 @@ namespace AoC2019
             var types = typeof(Program).Assembly.GetTypes();
             var result = new ISolution[25];
             for (int i = 0; i < 25; i++)
-                result[i] = types.FirstOrDefault(s => s.Name.EndsWith($"Day{i + 1}"))?.GetConstructor(Type.EmptyTypes).Invoke(null) as ISolution;
+                result[i] = types.FirstOrDefault(s => s.Name.EndsWith($"Day{i + 1:00}"))?.GetConstructor(Type.EmptyTypes).Invoke(null) as ISolution;
             return result;
         }
     }

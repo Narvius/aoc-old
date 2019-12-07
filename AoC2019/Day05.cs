@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day5 : ISolution
+    public class Day05 : ISolution
     {
         // Run ship computer with input 1, get diagnostic code (last output).
         public string PartOne(string[] lines)

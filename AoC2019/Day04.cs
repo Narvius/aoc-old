@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day4 : ISolution
+    public class Day04 : ISolution
     {
         // Find all integers in a given range that match the criteria given in the problem description.
         public string PartOne(string[] lines)

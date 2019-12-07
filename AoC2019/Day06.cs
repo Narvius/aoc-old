@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day6 : ISolution
+    public class Day06 : ISolution
     {
         // Get the total amount of all direct and indirect orbits.
         public string PartOne(string[] lines)

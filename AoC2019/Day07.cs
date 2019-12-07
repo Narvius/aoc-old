@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day7 : ISolution
+    public class Day07 : ISolution
     {
         // Run an amplifier series for all possible phase settings, get the best result.
         public string PartOne(string[] lines)

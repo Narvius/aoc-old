@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day3 : ISolution
+    public class Day03 : ISolution
     {
         // On a grid with two polylines, find the intersection that is closest to the origin (0, 0).
         public string PartOne(string[] lines)

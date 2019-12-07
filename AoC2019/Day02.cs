@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AoC2019
 {
-    public class Day2 : ISolution
+    public class Day02 : ISolution
     {
         // Implement the virtual machine specified in the problem.
         // Run it with the given initial state, and retrieve the output.
