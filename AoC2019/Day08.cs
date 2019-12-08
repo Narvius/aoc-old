@@ -12,12 +12,13 @@ namespace AoC2019
         public string PartOne(string[] lines)
         {
             const int LayerSize = 25 * 6;
-            var groups = lines[0]
+            var leastZeroes = lines[0]
                 .Select((c, i) => (c, group: i / LayerSize))
                 .GroupBy(v => v.group)
-                .ToDictionary(k => k.Key, k => k.Select(pair => pair.c));
+                .OrderBy(v => v.Count(c => c.c == '0'))
+                .First()
+                .Select(v => v.c);
 
-            var leastZeroes = groups.Values.OrderBy(v => v.Count(c => c == '0')).First();
             return (leastZeroes.Count(c => c == '1') * leastZeroes.Count(c => c == '2')).ToString();
         }
 
