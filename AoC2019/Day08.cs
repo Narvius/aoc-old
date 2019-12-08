@@ -34,7 +34,7 @@ namespace AoC2019
                 for (int j = i; j < line.Length; j += LayerSize)
                     if (line[j] != '2')
                     {
-                        result[i] = line[j] == '1' ? '*' : ' ';
+                        result[i] = line[j] == '1' ? '█' : ' ';
                         break;
                     }
 
