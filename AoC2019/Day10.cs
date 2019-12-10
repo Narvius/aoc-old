@@ -82,6 +82,7 @@ namespace AoC2019
             return field;
         }
 
+        // Rules out all fields 
         private void RuleOutLine(int[] field, (int x, int y) observer, (int x, int y) obstacle)
         {
             int dx = obstacle.x - observer.x;
@@ -133,7 +134,7 @@ namespace AoC2019
         private int As1D(int x, int y) => y * Width + x;
         private int GCD(int a, int b) => b == 0 ? a : GCD(b, a % b);
 
-        // Returns the angle between two points as seen from 'origin'; clamped into the interval [0, 2pi).
+        // Returns the angle between two points as seen from 'origin'; clamped to the interval [0, 2pi).
         private double AngleBetween((int x, int y) origin, (int x, int y) p1, (int x, int y) p2)
             => (Math.PI * 2 + Math.Atan2(p2.y - origin.y, p2.x - origin.x) - Math.Atan2(p1.y - origin.y, p1.x - origin.x)) % (Math.PI * 2);
     }
