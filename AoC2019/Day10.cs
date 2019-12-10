@@ -82,7 +82,8 @@ namespace AoC2019
             return field;
         }
 
-        // Rules out all fields 
+        // Rules out all fields that are in line with the observer and obstacle, but behind
+        // the obstacle from the point of view of the observer.
         private void RuleOutLine(int[] field, (int x, int y) observer, (int x, int y) obstacle)
         {
             int dx = obstacle.x - observer.x;
