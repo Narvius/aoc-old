@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace AoC2019
 {
@@ -37,17 +36,17 @@ namespace AoC2019
         {
             return AllLinePoints(line.Split(',').Select(ParseDirection));
 
-            (int x, int y) ParseDirection(string s)
+            static (int x, int y) ParseDirection(string s)
             {
                 var value = int.Parse(s.Substring(1));
-                switch (s[0])
+                return (s[0]) switch
                 {
-                    case 'L': return (-value, 0);
-                    case 'U': return (0, -value);
-                    case 'R': return (value, 0);
-                    case 'D': return (0, value);
-                    default: throw new Exception("invalid direction letter");
-                }
+                    'L' => (-value, 0),
+                    'U' => (0, -value),
+                    'R' => (value, 0),
+                    'D' => (0, value),
+                    _ => throw new Exception("invalid direction letter"),
+                };
             }
         }
 

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
+using CPU = AoC2019.Computer.V3;
 
 namespace AoC2019
 {
@@ -10,7 +10,7 @@ namespace AoC2019
         // Run an amplifier series for all possible phase settings, get the best result.
         public string PartOne(string[] lines)
         {
-            var source = new Computer.V3(lines[0]);
+            var source = new CPU(lines[0]);
             const int permutations = 120;
             return Enumerable.Range(0, permutations).Max(seed => new AmplifierSeries(source, seed).RunAll()).ToString();
         }
@@ -18,7 +18,7 @@ namespace AoC2019
         // Run an amplifier series in feedback mode for all possible phase settings, get the best result.
         public string PartTwo(string[] lines)
         {
-            var source = new Computer.V3(lines[0]);
+            var source = new CPU(lines[0]);
             const int permutations = 120;
             return Enumerable.Range(0, permutations).Max(seed => new AmplifierSeries(source, seed, true).RunAll()).ToString();
         }
@@ -27,12 +27,12 @@ namespace AoC2019
     // Describes a series of five amplifiers.
     public class AmplifierSeries
     {
-        private Computer.V3[] amplifiers;
+        private readonly CPU[] amplifiers;
 
         // Takes a "model" amplifier, which is copied to create instances, a "seed" (a number between 0 inclusive and
         // 120 exclusive) which describes the phase settings, and a switch that, if true, links up the final amplifier
         // back with the first one (as well as adjusting the final phase settings to use feedback mode).
-        public AmplifierSeries(Computer.V3 amplifierModel, int seed, bool withFeedback = false)
+        public AmplifierSeries(CPU amplifierModel, int seed, bool withFeedback = false)
         {
             amplifiers = Enumerable.Repeat(0, 5).Select(_ => new Computer.V3(amplifierModel)).ToArray();
 
@@ -55,7 +55,7 @@ namespace AoC2019
             for (int i = 0; ; i++)
             {
                 var amp = amplifiers[i % 5];
-                if (amp.State == Computer.V3.ExecutionState.Halted)
+                if (amp.State == CPU.ExecutionState.Halted)
                 {
                     var prevAmp = amplifiers[(i + 4) % 5];
                     return prevAmp.Output.Dequeue();

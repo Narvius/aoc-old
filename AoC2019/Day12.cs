@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AoC2019
 {
     public class Day12 : ISolution
     {
+        // Simulate 1000 steps of interaction in the given star system; get the total energy in it as defined by the task.
         public string PartOne(string[] lines)
         {
             var system = new System1D(lines);
@@ -15,6 +14,7 @@ namespace AoC2019
             return system.TotalEnergy().ToString();
         }
 
+        // Find out after how many steps the star system returns to the initial configuration.
         public string PartTwo(string[] lines)
         {
             var system = new System1D(lines);

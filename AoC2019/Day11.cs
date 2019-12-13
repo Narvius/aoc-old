@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+
+using CPU = AoC2019.Computer.V4;
 
 namespace AoC2019
 {
     public class Day11 : ISolution
     {
+        // Simulate the robot as described in the task; get the amount of distinct stepped-on tiles.
         public string PartOne(string[] lines)
         {
             var field = new byte[1001, 1001];
@@ -20,6 +22,7 @@ namespace AoC2019
             return visited.Count.ToString();
         }
 
+        // Simulate the robot as described in the task; read out what it wrote.
         public string PartTwo(string[] lines)
         {
             var field = new byte[1001, 1001];
@@ -58,7 +61,7 @@ namespace AoC2019
 
     public class Robot
     {
-        private readonly Computer.V4 Brain;
+        private readonly CPU Brain;
 
         private (int x, int y) position;
         private Dir direction;
@@ -67,13 +70,13 @@ namespace AoC2019
 
         public Robot(string program, (int x, int y) startPosition)
         {
-            Brain = new Computer.V4(program, 10000);
+            Brain = new CPU(program, 10000);
             position = startPosition;
         }
 
         public bool Step(byte[,] field)
         {
-            if (Brain.State == Computer.V4.ExecutionState.Halted)
+            if (Brain.State == CPU.ExecutionState.Halted)
                 return false;
 
             Brain.Input.Enqueue(field[position.x, position.y]);

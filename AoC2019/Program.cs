@@ -7,7 +7,7 @@ namespace AoC2019
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] _)
         {
             var solutions = SelectProblem().ToList();
             if (solutions.Count == 0)
@@ -38,7 +38,7 @@ namespace AoC2019
 
         static IEnumerable<(ISolution solution, string dataFile, string printPrefix)> SelectProblem()
         {
-            string Show(int i) => $"({(char)('a' + i)}) Day {i + 1,-2}";
+            static string Show(int i) => $"({(char)('a' + i)}) Day {i + 1,-2}";
 
             var solutions = GatherSolutions();
             Console.WriteLine(">> Select a solution to run:");
