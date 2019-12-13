@@ -10,7 +10,7 @@ namespace AoC2019
         {
             const int LayerSize = 25 * 6;
             var leastZeroes = lines[0]
-                .Select((c, i) => (c: c, group: i / LayerSize))
+                .Select((c, i) => (c, group: i / LayerSize))
                 .GroupBy(v => v.group)
                 .OrderBy(v => v.Count(c => c.c == '0'))
                 .First()

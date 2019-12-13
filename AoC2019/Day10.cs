@@ -68,8 +68,8 @@ namespace AoC2019
 
         private int[] VisibleFrom(int[] source, int x, int y)
         {
-            var field = new int[original.Length];
-            Array.Copy(original, field, field.Length);
+            var field = new int[source.Length];
+            Array.Copy(source, field, field.Length);
 
             field[As1D(x, y)] = RULED_OUT;
 

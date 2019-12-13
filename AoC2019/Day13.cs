@@ -29,7 +29,6 @@ namespace AoC2019
         {
             var cpu = new CPU(lines[0], 10000);
             cpu.OverwriteMemoryAt(0, 2);
-            cpu.RunWhilePossible();
 
             return RunGameLoop(cpu).ToString();
         }
@@ -41,14 +40,13 @@ namespace AoC2019
             var ballState = (x: 0, y: 0);
             var score = 0;
 
-            UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
-
             while (cpu.State != CPU.ExecutionState.Halted)
             {
-                cpu.Input.Enqueue(Math.Sign(ballState.x - paddleState.x));
                 cpu.RunWhilePossible();
                 UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
+                cpu.Input.Enqueue(Math.Sign(ballState.x - paddleState.x));
             }
+
             return score;
         }
 
@@ -62,13 +60,10 @@ namespace AoC2019
 
                 if (x == -1 && y == 0)
                     score = value;
-                else
-                {
-                    if (value == 3)
-                        paddle = (x, y);
-                    else if (value == 4)
-                        ball = (x, y);
-                }
+                else if (value == 3)
+                    paddle = (x, y);
+                else if (value == 4)
+                    ball = (x, y);
             }
         }
     }
