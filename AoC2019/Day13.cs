@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using CPU = AoC2019.Computer.V4;
 
@@ -9,6 +6,7 @@ namespace AoC2019
 {
     public class Day13 : ISolution
     {
+        // Run the program and count how many breakable blocks (code 2) it printed.
         public string PartOne(string[] lines)
         {
             var cpu = new CPU(lines[0], 10000);
@@ -26,6 +24,7 @@ namespace AoC2019
             return result.ToString();
         }
 
+        // Win the game and report the resulting score.
         public string PartTwo(string[] lines)
         {
             var cpu = new CPU(lines[0], 10000);
@@ -35,6 +34,25 @@ namespace AoC2019
             return RunGameLoop(cpu).ToString();
         }
 
+        // Wins the game and returns the score.
+        private int RunGameLoop(CPU cpu)
+        {
+            var paddleState = (x: 0, y: 0);
+            var ballState = (x: 0, y: 0);
+            var score = 0;
+
+            UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
+
+            while (cpu.State != CPU.ExecutionState.Halted)
+            {
+                cpu.Input.Enqueue(Math.Sign(ballState.x - paddleState.x));
+                cpu.RunWhilePossible();
+                UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
+            }
+            return score;
+        }
+
+        // Reads all the output of the CPU and updates the relevant game state as necessary.
         private void UpdateGameState(CPU cpu, ref int score, ref (int x, int y) paddle, ref (int x, int y) ball)
         {
             while (cpu.Output.Count > 0)
@@ -52,23 +70,6 @@ namespace AoC2019
                         ball = (x, y);
                 }
             }
-        }
-
-        private int RunGameLoop(CPU cpu)
-        {
-            var paddleState = (x: 0, y: 0);
-            var ballState = (x: 0, y: 0);
-            var score = 0;
-
-            UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
-
-            while (cpu.State != CPU.ExecutionState.Halted)
-            {
-                cpu.Input.Enqueue(Math.Sign(ballState.x - paddleState.x));
-                cpu.RunWhilePossible();
-                UpdateGameState(cpu, ref score, ref paddleState, ref ballState);
-            }
-            return score;
         }
     }
 }
