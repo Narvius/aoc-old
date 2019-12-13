@@ -35,6 +35,11 @@ namespace AoC2019.Computer
             Array.Copy(source.Memory, Memory, Memory.Length);
         }
 
+        public void OverwriteMemoryAt(int index, int value)
+        {
+            Memory[index] = value;
+        }
+
         // Runs the program until paused or halted.
         public void RunWhilePossible()
         {
