@@ -20,12 +20,11 @@ namespace AoC2019
     public class ConversionGraph
     {
         // Each node represents a single possible reagent; including what it's called, how many are produced
-        // per batch, what it's used in and how it is made.
+        // per batch and what it's used in.
         public class Node
         {
             public string Label { get; }
             public int BatchSize { get; }
-            public List<(Node node, int perBatch)> Uses { get; } = new List<(Node node, int perBatch)>();
             public List<(Node node, int perBatch)> UsedIn { get; } = new List<(Node node, int perBatch)>();
 
             public Node(string label, int batchSize)
@@ -64,11 +63,7 @@ namespace AoC2019
             }
 
             foreach (var (from, cost, to) in links)
-            {
-                Node f = nodes[from], t = nodes[to];
-                f.UsedIn.Add((t, cost));
-                t.Uses.Add((f, cost));
-            }
+                nodes[from].UsedIn.Add((nodes[to], cost));
         }
 
         public long TotalOreUsedInOneFuel() => nodes["ORE"].TotalPerCraft("FUEL");
