@@ -71,21 +71,15 @@ namespace AoC2019
         public long AmountOfFuelFromOre(long amount)
         {
             var node = nodes["ORE"];
-            long used;
-            int fuels;
 
-            // Get a rough first approximation by doubling until we're just under the spending limit.
-            for (fuels = 1; ; fuels *= 2)
-            {
-                used = node.TotalPerCraft("FUEL", fuels);
-                if (used > amount / 2)
-                    break;
-            }
+            // Arbitrary first guess.
+            int fuels = 100;
+            long used = node.TotalPerCraft("FUEL", fuels);
 
-            // Count up until we're just above the spending limit; but use larger steps if we're far away.
+            // Count up until we're just above the spending limit; but use much larger steps if we're far away.
             while (used < amount)
             {
-                fuels += Math.Max(1, (int)Math.Floor(((double)amount - used) / ((double)amount / fuels)));
+                fuels += Math.Max(1, (int)Math.Floor(((double)amount - used) / ((double)used / fuels)));
                 used = node.TotalPerCraft("FUEL", fuels);
             }
 
