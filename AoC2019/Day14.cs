@@ -79,7 +79,7 @@ namespace AoC2019
             long used;
             int fuels;
 
-            // Get a decent first approximation.
+            // Get a rough first approximation by doubling until we're just under the spending limit.
             for (fuels = 1; ; fuels *= 2)
             {
                 used = node.TotalPerCraft("FUEL", fuels);
@@ -87,7 +87,7 @@ namespace AoC2019
                     break;
             }
 
-            // Use the ratio between used and total available ore to get a really close second approximation.
+            // Count up until we're just above the spending limit; but use larger steps if we're far away.
             while (used < amount)
             {
                 fuels += Math.Max(1, (int)Math.Floor(((double)amount - used) / ((double)amount / fuels)));
