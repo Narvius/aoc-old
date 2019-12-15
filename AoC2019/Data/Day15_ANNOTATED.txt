@@ -100,9 +100,9 @@ Using our example from before, we'd get the following indices for each cell:
 #0#2#4#
 #.6.8.#
 #5#7#9#
-#.A.B.#
-#######
-(where A = 10, B = 11)
+#.B.D.#
+#A#C#E#
+(where A = 10, B = 11..)
 
 Now we simply add the offset at which the collision data is stored, and read
 the cell at that location.
@@ -111,7 +111,7 @@ if (cell < 45) => FLOOR
 else           => WALL
 
 So with this data blob:
-50,40,50,40,40,40,40,50,40,50,40,40
+50,40,50,40,40,40,40,50,40,50,40,50,40,50,40,50
 
 Our map would fill in as:
 
