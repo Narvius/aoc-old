@@ -34,23 +34,23 @@ namespace AoC2019
 
             // Fact 1: The right and bottom edges ([width - 1] and [height - 1], respectively) are stored in
             //         cells 132 (width) and 139 (height).
-            // Reason: That code is part of AFTER_MOVE, which performs bounds checking. If the new x/y coordinates match
+            // Reason: That code is part of BOUNDS_CHECK, which performs bounds checking. If the new x/y coordinates match
             //         those cells, the move fails--which mean the width/height are larger than those by 1.
             Width = cells[132] + 1;
             Height = cells[139] + 1;
             map = new char[Width, Height];
 
-            // Fact 1: The initial position is stored in cells 1034 (x) and 1035 (y).
+            // Fact 2: The initial position is stored in cells 1034 (x) and 1035 (y).
             // Reason: Those cells are used in the program to keep track of the player position.
             StartPosition = (cells[1034], cells[1035]);
 
-            // Fact 2: The position of the goal is stored in cells 146 (x) and 153 (y);
-            // Reason: Those cells are part of the code for AFTER_MOVE, where bounds and goal checking is done.
+            // Fact 3: The position of the goal is stored in cells 146 (x) and 153 (y);
+            // Reason: Those cells are part of the code for BOUNDS_CHECK, where bounds and goal checking is done.
             //         If those two coordinates are matched, the program outputs 2, which is the code for the goal.
             Goal = (cells[146], cells[153]);
 
-            // Fact 3: The border is solid.
-            // Reason: AFTER_MOVE checks for border coordinates, and fails the move if any of the 4 border conditions is met.
+            // Fact 4: The border is solid.
+            // Reason: BOUNDS_CHECK checks for border coordinates, and fails the move if any of the 4 border conditions is met.
             for (int x = 0; x < Width; x++)
             {
                 map[x, 0] = '#';
@@ -62,19 +62,19 @@ namespace AoC2019
                 map[Width - 1, y] = '#';
             }
 
-            // Fact 4: A quarter of all tiles are guaranteed walls.
+            // Fact 5: A quarter of all tiles are guaranteed walls.
             // Reason: In GET_MOVE_RESULT, if the horizontal and vertical flip flags are 0, the move fails.
             for (int x = 2; x < Width; x += 2)
                 for (int y = 2; y < Height; y += 2)
                     map[x, y] = '#';
 
-            // Fact 5: A quarter of all tiles are guaranteed floor.
+            // Fact 6: A quarter of all tiles are guaranteed floor.
             // Reason: In NORMAL_MOVE, if both the horizontal and vertical flip flags are 1, the move succeeds.
             for (int x = 1; x < (Width - 1); x += 2)
                 for (int y = 1; y < (Height - 1); y += 2)
                     map[x, y] = '.';
 
-            // Fact 6: The type of cell for all other cells is stored in the data blob.
+            // Fact 7: The type of cell for all other cells is stored in the data blob.
             // Reason: GET_MOVE_RESULT has a complex calculation involving the current "temp r" and "temp x" values,
             //         the result of which is an index into the data section.
             const int DATA_OFFSET = 252;

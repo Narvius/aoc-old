@@ -166,7 +166,7 @@ LABELS:
     GO_SOUTH = 58
     GO_WEST = 81
     GO_NORTH = 104
-    AFTER_MOVE = 124
+    BOUNDS_CHECK = 124
     NORMAL_MOVE = 165
     GET_MOVE_RESULT = 179
     FAILED_MOVE = 217
@@ -194,32 +194,32 @@ else halt()
 GO_NORTH:
 
 temp (x, y, h, v, r) = (x, y - 1, h, !v, r - !v)
-goto AFTER_MOVE
+goto BOUNDS_CHECK
 
 ===============================
 
 GO_SOUTH:
 
 temp (x, y, h, v, r) = (x, y + 1, h, !v, r + v)
-goto AFTER_MOVE
+goto BOUNDS_CHECK
 
 ===============================
 
 GO_WEST:
 
 temp (x, y, h, v, r) = (x - 1, y, !h, v, r)
-goto AFTER_MOVE
+goto BOUNDS_CHECK
 
 ===============================
 
 GO_EAST:
 
 temp (x, y, h, v, r) = (x + 1, y, !h, v, r)
-goto AFTER_MOVE
+goto BOUNDS_CHECK
 
 ===============================
 
-AFTER_MOVE:
+BOUNDS_CHECK:
 
 if (temp x == 0) goto FAILED_MOVE
 if (temp y == 0) goto FAILED_MOVE
