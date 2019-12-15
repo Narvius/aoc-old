@@ -83,8 +83,14 @@ namespace AoC2019
                 used = node.TotalPerCraft("FUEL", fuels);
             }
 
-            // Since we overshoot by 1 in the previous step, we need to count down here.
-            return fuels - 1;
+            // If the numbers align, we could overshoot by a couple fuels. Count down until we're back below the spending limit.
+            while (used > amount)
+            {
+                fuels--;
+                used = node.TotalPerCraft("FUEL", fuels);
+            }
+
+            return fuels;
         }
 
         private (string reagent, int amount) ParseReagent(string data)

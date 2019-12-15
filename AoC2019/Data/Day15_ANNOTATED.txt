@@ -1,0 +1,273 @@
+﻿===============================
+=                             =
+=    Brief explanation        =
+=                             =
+===============================
+
+The program consists of roughly three parts:
+ - the actual code (cells 0 to 251)
+ - the collision data (cells 252 to 1031)
+ - the robot state (cells 1032 to 1044)
+
+Unless the programs differ between people (which I doubt), these numbers should
+always match.
+
+
+    HOW TO KNOW HOW BIG THE MAP IS, AND WHERE THE ROBOT/GOAL ARE
+All of those are stored in various parts of the program.
+
+The robot position is stored in the state section, in cells 1034 and 1035.
+
+For map size, we check memory cells 132 and 139. Those contain the largest
+allowed x and y positions (it's the bounds checking code), so the width and
+height are those plus one.
+
+The goal is checked against before collision tests, in cells 146 and 153.
+
+
+    HOW THE COLLISION DATA WORKS
+It's a bit complicated. Only half of all tiles actually have collision data
+stored in the data blob!
+
+In the program itself, the position of the robot is actually tracked using
+_five_ variables, rather than the two one would expect.
+
+There's:
+ - x position ("x")
+ - y position ("y")
+ - horizontal flip flag ("v")
+ - data row ("r")
+ - vertical flip flag ("h")
+
+The two flip flags flip every time you move along their axis.
+So for example if you make the robot move EAST, the horizontal flip flag
+flips once (so if it was 1, it becomes 0; and vice versa).
+
+In practice, those flip flags are just a workaround: The intcode computer
+doesn't have a modulo operator; so the flags are used to keep track of the
+position modulo 2, like so:
+ - h = x % 2
+ - v = y % 2
+
+These two flags are used to calculate collision data for the _other_ half of
+the tiles, the ones that I mentioned that don't have it stored in the data
+blob.
+
+Simply:
+    if (!v && !h) => WALL
+    if (v && h) => FLOOR
+
+Together with the fact that the border is solid, this leads to a simple grid
+pattern as a base for our map. On an example of a size 7x7 map, we'd have:
+
+#######
+#. . .#
+# # # #
+#. . .#
+# # # #
+#. . .#
+#######
+
+Look at the second and third row of that:
+
+#. . .#
+# # # #
+
+Notice that together, they have 5 "holes" left, which is as much as one row has
+on it's own. In fact, in the collision data, they're encoded together!
+
+That's where the final robot state value comes in:
+"r", which I called the "data row".
+It's simply equal to floor(y / 2). Another workaround, since the intcode
+computer does not have an integer division operator.
+
+Armed with all these variables, we can convert the robot position into a
+single number that is used to select the data cell to use for collision
+checking:
+
+index = (r + v - 1) * (WIDTH - 2) + x - 1
+
+"r + v" is the same as "y / 2" but rounded UP, instead of down. Which means
+that the aforementioned second (y = 1) and third (y = 2) rows would have the
+same result of 1.
+
+Both of the "- 1" are there to account for left and top borders.
+
+Using our example from before, we'd get the following indices for each cell:
+
+#######
+#.1.3.#
+#0#2#4#
+#.6.8.#
+#5#7#9#
+#.A.B.#
+#######
+(where A = 10, B = 11)
+
+Now we simply add the offset at which the collision data is stored, and read
+the cell at that location.
+
+if (cell < 45) => FLOOR
+else           => WALL
+
+So with this data blob:
+50,40,50,40,40,40,40,50,40,50,40,40
+
+Our map would fill in as:
+
+#######
+#.....#
+#####.#
+#.....#
+#.#####
+#.....#
+#######
+
+===============================
+=                             =
+=    Reference                =
+=                             =
+===============================
+
+MEMORY MAPPINGS:
+    A list of all "special" memory cells.
+    
+    132 = highest allowed X position (WIDTH - 1)
+    139 = highest allowed y position (HEIGHT - 1)
+
+    146 = x position of the goal tile
+    153 = y position of the goal tile
+
+    1032 = stores results of intermediate calculations
+    1033 = stores last input
+
+    True robot state:
+    1034 = "x"
+    1035 = "y"
+    1036 = "h" -- always equal to (x % 2)
+    1037 = "r" -- always equal to floor(y / 2) ~ integer division
+    1038 = "v" -- always equal to (y % 2)
+
+    Temporary robot state used during legality check for movement:
+    1039 = "temp x"
+    1040 = "temp y"
+    1041 = "temp h"
+    1042 = "temp r"
+    1043 = "temp v"
+
+    1044 = "output"
+
+LABELS:
+    A list of all labels, and what position in the original program they
+    correspond to.
+
+    START = 0
+    GO_NORTH = 31
+    GO_SOUTH = 58
+    GO_WEST = 81
+    GO_NORTH = 104
+    AFTER_MOVE = 124
+    NORMAL_MOVE = 165
+    GET_MOVE_RESULT = 179
+    FAILED_MOVE = 217
+    PROCESS_MOVE = 224
+    OUTPUT - 247
+    DATA = 252
+    STATE = 1032
+
+===============================
+=                             =
+=    Disassembled program     =
+=                             =
+===============================
+
+START:
+
+if (input == 1) goto GO_NORTH
+if (input == 2) goto GO_SOUTH
+if (input == 3) goto GO_WEST
+if (input == 4) goto GO_EAST
+else halt()
+
+===============================
+
+GO_NORTH:
+
+temp (x, y, h, v, r) = (x, y - 1, h, !v, r - !v)
+goto AFTER_MOVE
+
+===============================
+
+GO_SOUTH:
+
+temp (x, y, h, v, r) = (x, y + 1, h, !v, r + v)
+goto AFTER_MOVE
+
+===============================
+
+GO_WEST:
+
+temp (x, y, h, v, r) = (x - 1, y, !h, v, r)
+goto AFTER_MOVE
+
+===============================
+
+GO_EAST:
+
+temp (x, y, h, v, r) = (x + 1, y, !h, v, r)
+goto AFTER_MOVE
+
+===============================
+
+AFTER_MOVE:
+
+if (temp x == 0) goto FAILED_MOVE
+if (temp y == 0) goto FAILED_MOVE
+if (temp x == 40) goto FAILED_MOVE
+if (temp y == 40) goto FAILED_MOVE
+
+if (temp x != 1) goto NORMAL_MOVE
+if (temp y != 7) goto NORMAL_MOVE
+
+output = 2
+goto PROCESS_MOVE
+
+===============================
+
+NORMAL_MOVE:
+
+if (temp v == 0 || temp h == 0)
+    goto GET_MOVE_RESULT
+output = 1
+goto PROCESS_MOVE
+
+===============================
+
+GET_MOVE_RESULT:
+
+if (temp v == 0 && temp h == 0)
+    goto FAILED_MOVE
+output = (45 > #[(temp r + temp v - 1) * 39 + temp x - 1 + OFFSET(DATA)])
+goto PROCESS_MOVE
+
+===============================
+
+FAILED_MOVE:
+
+output = 0
+goto PROCESS_MOVE
+
+===============================
+
+PROCESS_MOVE:
+
+if (!output) goto OUTPUT
+(x, y, h, v, r) = temp (x, y, h, v, r)
+goto OUTPUT
+
+===============================
+
+OUTPUT:
+
+Output(dat4)
+goto START
