@@ -16,7 +16,7 @@ namespace AoC2019
             => new RobotMap(lines[0]).TimeToFillUpCompletely().ToString();
     }
 
-    // Constructs the map stores in the program without running it.
+    // Constructs the map stored in the program without running it.
     // See Data\Day15_ANNOTATED.txt to make sense of the comments in this.
     public class RobotMap
     {
