@@ -17,7 +17,7 @@ namespace AoC2020
     }
 
     /// <summary>
-    /// Provides the means of querying the amount of trees on slopes starting at (0, 0).
+    /// Provides a means of querying the amount of trees on slopes starting at (0, 0).
     /// </summary>
     public class TreeMap
     {
