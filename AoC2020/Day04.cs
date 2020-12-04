@@ -55,19 +55,7 @@ namespace AoC2020
         /// <param name="blobs">One or more passport blobs separated by empty lines.</param>
         /// <returns>An enumeration of all passports that can be constructed from the blobs.</returns>
         public static IEnumerable<Passport> FromBlobsFile(string[] blobs)
-        {
-            int start = 0;
-
-            for (int end = 0; end < blobs.Length; end++)
-                if (string.IsNullOrWhiteSpace(blobs[end]))
-                {
-                    yield return new Passport(new ArraySegment<string>(blobs, start, end - start));
-                    start = end + 1;
-                }
-
-            if (start < blobs.Length)
-                yield return new Passport(new ArraySegment<string>(blobs, start, blobs.Length - start));
-        }
+            => blobs.ChunkBy(string.IsNullOrEmpty).Select(blob => new Passport(blob));
 
         public int BirthYear { get; set; }
         public int IssueYear { get; set; }
