@@ -14,7 +14,7 @@ namespace AoC2020
         // Find the only missing seat id between two other ones.
         public string PartTwo(string[] lines)
         {
-            var ids = lines.Select(line => new Seating(line)).Select(s => s.SeatId).OrderBy(id => id);
+            var ids = lines.Select(line => new Seating(line).SeatId).OrderBy(id => id);
 
             return (from consecutiveIds in ids.Zip(ids.Skip(1))
                     let difference = consecutiveIds.Second - consecutiveIds.First
