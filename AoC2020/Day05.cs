@@ -19,7 +19,7 @@ namespace AoC2020
             return (from consecutiveIds in ids.Zip(ids.Skip(1))
                     let difference = consecutiveIds.Second - consecutiveIds.First
                     where difference == 2
-                    select consecutiveIds.Second).Single().ToString();
+                    select consecutiveIds.Second - 1).Single().ToString();
             
             //return ids.Zip(ids.Skip(1), (a, b) => (b - a, b - 1)).First(p => p.Item1 == 2).Item2.ToString();
         }
