@@ -10,11 +10,11 @@ namespace AoC2020
     {
         // Find the amount of bag that directly or indirectly contain "shiny gold".
         public string PartOne(string[] lines)
-            => Bag.BagsFromRules(lines)["shiny gold"].PossibleContainerCount().ToString();
+            => Bag.FromRulesFile(lines)["shiny gold"].PossibleContainerCount().ToString();
 
         // Find the total amount of bags contained within "shiny gold".
         public string PartTwo(string[] lines)
-            => Bag.BagsFromRules(lines)["shiny gold"].ContainedBagCount().ToString();
+            => Bag.FromRulesFile(lines)["shiny gold"].ContainedBagCount().ToString();
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ namespace AoC2020
         /// </summary>
         /// <param name="rules">The puzzle input.</param>
         /// <returns>A directed, weighted graph in the form of a dictionary containing each node keyed by their <seealso cref="color"/>.</returns>
-        public static Dictionary<string, Bag> BagsFromRules(string[] rules)
+        public static Dictionary<string, Bag> FromRulesFile(string[] rules)
         {
             const string sourceRegex = @"^\w+ \w+";
             const string targetRegex = @"(\d) (\w+ \w+)";
