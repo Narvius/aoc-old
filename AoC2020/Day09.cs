@@ -9,11 +9,11 @@ namespace AoC2020
     {
         // Find the number that is not the sum of any two of the previous 25 numbers.
         public string PartOne(string[] lines)
-            => new XmasDecryptor(25, lines).FindWeakness().ToString();
+            => new XmasDecryptor(25, lines).FindInvalidNumber().ToString();
 
         // For the number from part 1, find the continuous range (of arbitrary size) that sums to it; sum the smallest and largest number from the range.
         public string PartTwo(string[] lines)
-            => new XmasDecryptor(25, lines).FindWeaknessIntervalCode().ToString();
+            => new XmasDecryptor(25, lines).FindEncryptionWeakness().ToString();
     }
 
     /// <summary>
@@ -31,11 +31,10 @@ namespace AoC2020
         }
 
         /// <summary>
-        /// Finds the weakness. "Weakness" is defined as the first number in the stream that can not be built as a sum of the preceding n numbers
-        /// (where n = <see cref="preambleSize"/>).
+        /// Finds the number in the stream that isn't the sum of any of the previous n numbers (n = <see cref="preambleSize"/>).
         /// </summary>
-        /// <returns>The weakness.</returns>
-        public long FindWeakness()
+        /// <returns>The invalid number.</returns>
+        public long FindInvalidNumber()
         {
             for (int i = preambleSize; i < data.Length; i++)
             {
@@ -54,18 +53,20 @@ namespace AoC2020
         }
 
         /// <summary>
-        /// Convenience function that calls <see cref="FindIntervalCode(long)"/> with the result of <see cref="FindWeakness"/>.
+        /// Finds the encryption weakness of the data stream; the sum of the lowest and highest number from
+        /// the only continuous range (size 2 or more) of numbers that add up to the invalid number in the stream.
         /// </summary>
-        /// <returns></returns>
-        public long FindWeaknessIntervalCode() => FindIntervalCode(FindWeakness());
+        /// <returns>The encryption weakness.</returns>
+        public long FindEncryptionWeakness() => FindEncryptionWeaknessForGivenSum(FindInvalidNumber());
 
         /// <summary>
         /// For the given number, finds a continuous range of numbers in the stream that sums up to it and
         /// finds it's "code" (the sum of the lowest and highest number in it).
         /// </summary>
+        /// <remarks>Only guaranteed to have valid output with the result of <see cref="FindInvalidNumber"/>.</remarks>
         /// <param name="sum">The sum of the range to be found.</param>
         /// <returns>The sum of the lowest and highest number in the found range.</returns>
-        public long FindIntervalCode(long sum)
+        private long FindEncryptionWeaknessForGivenSum(long sum)
         {
             long total;
 
