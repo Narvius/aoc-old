@@ -46,7 +46,7 @@ namespace AoC2020
         /// <remarks>
         /// Uses Dynamic Programming to efficiently compute the answer.
         /// 
-        /// An observation: Let's take the joltages 1, 2, 4, 5, 6. How many ways of arranging them are there?
+        /// An observation: Let's take the joltages 1, 3, 4, 5, 6. How many ways of arranging them are there?
         /// We can actually systematically construct all valid arrangements. We go backwards from the last element, and prepend valid numbers
         /// until we at some point include the 1, which will then be a valid solution.
         /// 
