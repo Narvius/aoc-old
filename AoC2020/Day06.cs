@@ -13,7 +13,7 @@ namespace AoC2020
             .Sum(chunk => string.Join("", chunk).Distinct().Count())
             .ToString();
 
-        // Find letters contained in ALL lines within a chunk. Count htose letters for each chunk, sum the totals.
+        // Find letters contained in ALL lines within a chunk. Count those letters for each chunk, sum the totals.
         public string PartTwo(string[] lines)
             => lines.ChunkBy(string.IsNullOrEmpty)
             .Select(chunk => chunk.Where(s => !string.IsNullOrEmpty(s)).ToArray())
