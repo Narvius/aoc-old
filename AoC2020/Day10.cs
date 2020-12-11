@@ -30,7 +30,7 @@ namespace AoC2020
         }
 
         /// <summary>
-        /// Counts how often which joltage difference shows up, and computes the checksun, that is, the product of the number of one-differences
+        /// Counts how often which joltage difference shows up, and computes the checksum, that is, the product of the number of one-differences
         /// and three-differences.
         /// </summary>
         /// <returns>The checksum.</returns>
