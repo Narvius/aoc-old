@@ -9,11 +9,11 @@ namespace AoC2020
     {
         // Use instructions to move the ship; get final position.
         public string PartOne(string[] lines)
-            => new Ferry().RunCourse(lines).FlatDistanceTo((0, 0)).ToString();
+            => new Ferry().RunCourse(lines).FlatDistanceTo(Vec.Zero).ToString();
 
         // Use instructions to move the waypoint (and sometimes the ship); get final position.
         public string PartTwo(string[] lines)
-            => new Ferry().RunwaypointBasedCourse(lines).FlatDistanceTo((0, 0)).ToString();
+            => new Ferry().RunWaypointBasedCourse(lines).FlatDistanceTo(Vec.Zero).ToString();
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace AoC2020
         /// </summary>
         /// <param name="course">The puzzle input.</param>
         /// <returns>The final position of the ship.</returns>
-        public Vec RunwaypointBasedCourse(string[] course)
+        public Vec RunWaypointBasedCourse(string[] course)
         {
             (Vec p, Vec w) Step((Vec p, Vec w) state, string instruction)
             {
