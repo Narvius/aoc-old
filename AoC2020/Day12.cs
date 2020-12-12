@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace AoC2020
@@ -8,11 +9,11 @@ namespace AoC2020
     {
         // Use instructions to move the ship; get final position.
         public string PartOne(string[] lines)
-            => new Ferry().RunCourse(lines).FlatDistanceTo((0, 0)).ToString();
+            => new Ferry().RunCourseF(lines).FlatDistanceTo((0, 0)).ToString();
 
         // Use instructions to move the waypoint (and sometimes the ship); get final position.
         public string PartTwo(string[] lines)
-            => new Ferry().RunWaypointBasedCourse(lines).FlatDistanceTo((0, 0)).ToString();
+            => new Ferry().RunWaypointBasedCourseF(lines).FlatDistanceTo((0, 0)).ToString();
     }
 
     /// <summary>
@@ -25,19 +26,26 @@ namespace AoC2020
         /// </summary>
         /// <param name="course">The puzzle input.</param>
         /// <returns>The final position of the ship.</returns>
-        public Vec RunCourse(string[] course)
+        public Vec RunCourseF(string[] course)
         {
-            Vec heading = (1, 0);
-            Vec position = (0, 0);
-
-            foreach (var line in course)
+            (Vec p, Vec d) Step((Vec p, Vec d) state, string instruction)
             {
-                int argument = int.Parse(line.Substring(1));
-                heading = Rotate(heading, line[0], argument);
-                position += argument * GetHeading(line[0], heading);
+                int argument = int.Parse(instruction.Substring(1));
+                return instruction[0] switch
+                {
+                    'L' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.d, (d, _) => d.RotatedLeft())),
+                    'R' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.d, (d, _) => d.RotatedRight())),
+                    'N' => (state.p + (0, -argument), state.d),
+                    'E' => (state.p + (argument, 0), state.d),
+                    'S' => (state.p + (0, argument), state.d),
+                    'W' => (state.p + (-argument, 0), state.d),
+                    'F' => (state.p + argument * state.d, state.d),
+                    _ => throw new Exception("invalid instruction")
+                };
             }
 
-            return position;
+            (Vec position, Vec direction) initialState = ((0, 0), (1, 0));
+            return course.Aggregate(initialState, Step).position;
         }
 
         /// <summary>
@@ -45,59 +53,26 @@ namespace AoC2020
         /// </summary>
         /// <param name="course">The puzzle input.</param>
         /// <returns>The final position of the ship.</returns>
-        public Vec RunWaypointBasedCourse(string[] course)
+        public Vec RunWaypointBasedCourseF(string[] course)
         {
-            Vec waypoint = (10, -1);
-            Vec position = (0, 0);
-
-            foreach (var line in course)
+            (Vec p, Vec w) Step((Vec p, Vec w) state, string instruction)
             {
-                int argument = int.Parse(line.Substring(1));
-                waypoint = Rotate(waypoint, line[0], argument);
-                if (line[0] == 'F')
-                    position += argument * waypoint;
-                else
-                    waypoint += argument * GetHeading(line[0]);
+                int argument = int.Parse(instruction.Substring(1));
+                return instruction[0] switch
+                {
+                    'L' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.w, (w, _) => w.RotatedLeft())),
+                    'R' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.w, (w, _) => w.RotatedRight())),
+                    'N' => (state.p, state.w + (0, -argument)),
+                    'E' => (state.p, state.w + (argument, 0)),
+                    'S' => (state.p, state.w + (0, argument)),
+                    'W' => (state.p, state.w + (-argument, 0)),
+                    'F' => (state.p + argument * state.w, state.w),
+                    _ => throw new Exception("invalid instruction")
+                };
             }
 
-            return position;
+            (Vec position, Vec waypoint) initialState = ((0, 0), (10, -1));
+            return course.Aggregate(initialState, Step).position;
         }
-
-        /// <summary>
-        /// Rotates the vector in the provided direction in 90 degree increments the correct amount of times.
-        /// </summary>
-        /// <param name="vec">The vector to rotate.</param>
-        /// <param name="direction">The direction to rotate in. Values other than 'L' and 'R' will result in no rotation.</param>
-        /// <param name="degrees">The amount of degrees to rotate by. Only increments of 90 matter; more precision than that will be discarded.</param>
-        /// <returns>The rotated vector.</returns>
-        private Vec Rotate(Vec vec, char direction, int degrees)
-        {
-            for (int i = 0; i < degrees / 90; i++)
-                vec = direction switch
-                {
-                    'L' => vec.RotatedLeft(),
-                    'R' => vec.RotatedRight(),
-                    _ => vec
-                };
-
-            return vec;
-        }
-        
-        /// <summary>
-        /// Returns a cardinal vector corresponding to the given letter.
-        /// </summary>
-        /// <param name="direction">The direction. Values other than 'N', 'S', 'E', 'W' and 'F' will result in a zero vector. 'F' is only valid if <paramref name="forward"/> is given.</param>
-        /// <param name="forward">The vector to return when the direction is 'F'.</param>
-        /// <returns>The vector corresponding to the given direction letter.</returns>
-        private Vec GetHeading(char direction, Vec? forward = null)
-            => direction switch
-            {
-                'N' => (0, -1),
-                'S' => (0, 1),
-                'E' => (1, 0),
-                'W' => (-1, 0),
-                'F' => forward ?? throw new Exception($"forward heading with null '{forward}' argument"),
-                _ => (0, 0)
-            };
     }
 }
