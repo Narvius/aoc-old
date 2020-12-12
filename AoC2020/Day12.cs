@@ -33,12 +33,12 @@ namespace AoC2020
                 int argument = int.Parse(instruction.Substring(1));
                 return instruction[0] switch
                 {
+                    'N' => (state.p + (0, -argument), state.d),
+                    'S' => (state.p + (0, argument), state.d),
+                    'E' => (state.p + (argument, 0), state.d),
+                    'W' => (state.p + (-argument, 0), state.d),
                     'L' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.d, (d, _) => d.RotatedLeft())),
                     'R' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.d, (d, _) => d.RotatedRight())),
-                    'N' => (state.p + (0, -argument), state.d),
-                    'E' => (state.p + (argument, 0), state.d),
-                    'S' => (state.p + (0, argument), state.d),
-                    'W' => (state.p + (-argument, 0), state.d),
                     'F' => (state.p + argument * state.d, state.d),
                     _ => throw new Exception("invalid instruction")
                 };
@@ -60,12 +60,12 @@ namespace AoC2020
                 int argument = int.Parse(instruction.Substring(1));
                 return instruction[0] switch
                 {
+                    'N' => (state.p, state.w + (0, -argument)),
+                    'S' => (state.p, state.w + (0, argument)),
+                    'E' => (state.p, state.w + (argument, 0)),
+                    'W' => (state.p, state.w + (-argument, 0)),
                     'L' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.w, (w, _) => w.RotatedLeft())),
                     'R' => (state.p, Enumerable.Range(0, argument / 90).Aggregate(state.w, (w, _) => w.RotatedRight())),
-                    'N' => (state.p, state.w + (0, -argument)),
-                    'E' => (state.p, state.w + (argument, 0)),
-                    'S' => (state.p, state.w + (0, argument)),
-                    'W' => (state.p, state.w + (-argument, 0)),
                     'F' => (state.p + argument * state.w, state.w),
                     _ => throw new Exception("invalid instruction")
                 };
