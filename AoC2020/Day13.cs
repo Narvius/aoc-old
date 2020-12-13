@@ -24,7 +24,7 @@ namespace AoC2020
         {
             // GENERAL CONCEPT:
             // Just trying candidates until I find one that works, but in a really constrained search space.
-            // First observation: Buses that have a smaller offset than line number constute "true modulo constraints".
+            // First observation: Buses that have a smaller offset than line number constitute "true modulo constraints".
             // That means that (if "n" is the line number, "offset" is the offset, and "t" is the timestamp we seek):
             //   t % n == offset
             // We can combine all of those into one modulo constraint using the Chinese Remainder Theorem in order to
