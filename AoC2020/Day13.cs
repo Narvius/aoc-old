@@ -28,7 +28,7 @@ namespace AoC2020
             // That means that (if "n" is the line number, "offset" is the offset, and "t" is the timestamp we seek):
             //   t % n == offset
             // We can combine all of those into one modulo constraint using the Chinese Remainder Theorem in order to
-            // get a number to start searching at (the inverse of the  offset of the resulting combined constraint) and
+            // get a number to start searching at (minus offset of the resulting combined constraint) and
             // a search step size (the "n" of the combined constraint).
 
             // Use the Chinese Remainder Theorem to combine two modulo constraints into one.
