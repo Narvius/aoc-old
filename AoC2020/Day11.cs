@@ -77,9 +77,9 @@ namespace AoC2020
                 {
                     var newState = (cell: map[y, x], count: targetCache[y, x].Count(p => map[p.y, p.x] == Cell.On)) switch
                     {
-                        (Cell.Off, 0)                         => Cell.On,
+                        (Cell.Off, 0)                              => Cell.On,
                         (Cell.On, var n) when n >= thresholdForOff => Cell.Off,
-                        _                                     => map[y, x]
+                        _                                          => map[y, x]
                     };
 
                     buffer[y, x] = newState;
