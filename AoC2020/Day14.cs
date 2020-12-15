@@ -59,7 +59,6 @@ namespace AoC2020
             int possibilities = 0;
 
             foreach (var line in program)
-            {
                 if (line.StartsWith("mask = "))
                 {
                     orMask = Convert.ToInt64(line.Substring(7).Replace('X', '0'), 2);
@@ -76,17 +75,27 @@ namespace AoC2020
                     for (int i = 0; i < possibilities; i++)
                     {
                         for (int n = 0; n < redirections.Length; n++)
-                            if ((i & (1 << n)) > 0)
-                                target &= ~(1L << redirections[n]);
-                            else
-                                target |= 1L << redirections[n];
+                            SetBit(ref target, redirections[n], (i & (1 << n)) > 0);
 
                         output[target] = value;
                     }
                 }
-            }
 
             return output;
+        }
+
+        /// <summary>
+        /// Overwrites a single bit in the given number.
+        /// </summary>
+        /// <param name="number">The number to modify.</param>
+        /// <param name="index">The index of the bit, with 0 being the least significant bit.</param>
+        /// <param name="on">If true, sets the bit to 1; sets it to 0 otherwise.</param>
+        private void SetBit(ref long number, int index, bool on)
+        {
+            if (on)
+                number &= ~(1L << index);
+            else
+                number |= 1L << index;
         }
 
         /// <summary>
