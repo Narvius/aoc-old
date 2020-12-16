@@ -52,7 +52,7 @@ namespace AoC2020
                     i = -1;
                 }
 
-            // Multiply together all "departure" fields from my own ticket together.
+            // Multiply together all "departure" fields from my own ticket.
             return orderedFields
                 .Select((f, i) => f.Name.StartsWith("departure") ? ownTicket[i] : 1)
                 .Aggregate((a, b) => a * b)
