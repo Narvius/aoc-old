@@ -35,7 +35,7 @@ namespace AoC2020
                                 select numbers).ToArray();
 
             // For each position, find all possible fields it might be.
-            var candidates = Enumerable.Range(0, 20)
+            var candidates = Enumerable.Range(0, fields.Count)
                 .Select(i => fields.Where(f => validTickets.All(t => f.Matches(t[i]))).ToList())
                 .ToArray();
 
