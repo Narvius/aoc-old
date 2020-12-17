@@ -72,9 +72,7 @@ namespace AoC2020
                             _                 => CubeState.Off
                         };
 
-            var temp = space;
-            space = buffer;
-            buffer = temp;
+            (space, buffer) = (buffer, space);
         }
 
         /// <summary>
@@ -158,9 +156,7 @@ namespace AoC2020
                                 _ => CubeState.Off
                             };
 
-            var temp = space;
-            space = buffer;
-            buffer = temp;
+            (space, buffer) = (buffer, space);
         }
 
         /// <summary>

@@ -88,9 +88,7 @@ namespace AoC2020
                         changed = true;
                 }
 
-            var temp = map;
-            map = buffer;
-            buffer = temp;
+            (map, buffer) = (buffer, map);
 
             return changed;
         }
