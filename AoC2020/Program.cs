@@ -7,9 +7,9 @@ namespace AoC2020
 {
     class Program
     {
-        static void Main(string[] _)
+        static void Main(string[] args)
         {
-            var solutions = SelectProblem().ToList();
+            var solutions = SelectProblem(args.Length > 0 ? args[0][0] : (char?)null).ToList();
             if (solutions.Count == 0)
                 Console.WriteLine("no solutions found matching selection");
             else
@@ -36,7 +36,7 @@ namespace AoC2020
             return (a, b);
         }
 
-        static IEnumerable<(ISolution solution, string dataFile, string printPrefix)> SelectProblem()
+        static IEnumerable<(ISolution solution, string dataFile, string printPrefix)> SelectProblem(char? input = null)
         {
             static string Show(int i) => $"({(char)('a' + i)}) Day {i + 1,-2}";
 
@@ -57,7 +57,7 @@ namespace AoC2020
             Console.WriteLine("(*) all     (any other key) latest");
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            char c = Console.ReadKey(true).KeyChar;
+            char c = input ?? Console.ReadKey(true).KeyChar;
 
             if (c == '*')
             {
