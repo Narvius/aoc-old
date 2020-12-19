@@ -6,10 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace AoC2020
 {
-    // I'm doing the same thing again as last the last two attempts. The main difference is that instead of writing my
-    // own state machine, I'm using regexes to do it for me, more efficiently. The important insight imported from my
-    // second attempt is that I can "unroll" the loops in the state machine, because I know the maximum input size.
-    // Since I manually handle the loop cases, this would be the first solution I wrote that is, by design, not universal for all possible inputs.
     public class Day19 : ISolution
     {
         // Count how many strings match rule 0.
@@ -17,7 +13,7 @@ namespace AoC2020
         {
             var chunks = lines.ChunkBy(string.IsNullOrEmpty, true).Select(Enumerable.ToArray).ToArray();
             var compiler = new RuleToRegexCompiler(chunks[0]);
-            return chunks[1].Count(compiler.Match).ToString();
+            return chunks[1].Count(line => Regex.IsMatch(line, compiler.RuleZeroRegex)).ToString();
         }
 
         // Count how many strings match rule 0 if rules 8 and 11 were modified to loop with themselves.
@@ -27,12 +23,12 @@ namespace AoC2020
             var compiler = new RuleToRegexCompiler(chunks[0],
                 loopRules: new Dictionary<int, string> { { 8, "42 8" }, { 11, "42 11 31" } },
                 longestInputSize: chunks[1].Max(s => s.Length));
-            return chunks[1].Count(compiler.Match).ToString();
+            return chunks[1].Count(line => Regex.IsMatch(line, compiler.RuleZeroRegex)).ToString();
         }
     }
 
     /// <summary>
-    /// Converts the rules into regexes.
+    /// Converts rules from the puzzle input into regexes.
     /// </summary>
     public class RuleToRegexCompiler
     {
@@ -41,6 +37,8 @@ namespace AoC2020
         private readonly int longestInputSize;
 
         private readonly string[] regexes;
+
+        public string RuleZeroRegex => regexes[0];
 
         /// <summary>
         /// Creates an object capable of matching strings against the provided puzzle rules.
@@ -137,13 +135,5 @@ namespace AoC2020
 
             return rules[i].Split('|')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Sum(n => RuleInputConsumption(int.Parse(n)));
         }
-
-        /// <summary>
-        /// Check if a string matches the rules of the puzzle.
-        /// </summary>
-        /// <param name="input">The string to check.</param>
-        /// <returns>True if it matches, false otherwise.</returns>
-        public bool Match(string input)
-            => Regex.IsMatch(input, regexes[0]);
     }
 }
