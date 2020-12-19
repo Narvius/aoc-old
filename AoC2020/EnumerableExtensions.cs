@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace AoC2020
@@ -66,5 +67,35 @@ namespace AoC2020
                     yield return chunk;
             }
         }
+
+        /// <summary>
+        /// Generates an infinite sequence by repeatedly applying the provided function to a state value and returning the result of it.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements in the generated sequence.</typeparam>
+        /// <typeparam name="TState">Type of the state passed into the generator function.</typeparam>
+        /// <param name="this">The initial value to pass into the generator function.</param>
+        /// <param name="f">The generator function.</param>
+        /// <returns>An infinite sequence of return values of the generator function.</returns>
+        public static IEnumerable<T> Unfold<T, TState>(this TState @this, Func<TState, (T result, TState newState)> f)
+        {
+            TState state = @this;
+            T result;
+
+            while (true)
+            {
+                (result, state) = f(state);
+                yield return result;
+            }
+        }
+
+        /// <summary>
+        /// Generates an infinite sequence by applying the provided function to the previous element in the sequence.
+        /// </summary>
+        /// <typeparam name="T">The type of elements produced.</typeparam>
+        /// <param name="this">The initial element, also included in the result.</param>
+        /// <param name="f">The generator function.</param>
+        /// <returns>An infinite sequence of return values of the generator function.</returns>
+        public static IEnumerable<T> Unfold<T>(this T @this, Func<T, T> f)
+            => Unfold(@this, s => { var t = f(s); return (t, t); }).Prepend(@this);
     }
 }
