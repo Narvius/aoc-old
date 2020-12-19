@@ -44,10 +44,7 @@ namespace AoC2020
         /// Creates an object capable of matching strings against the provided puzzle rules.
         /// </summary>
         /// <param name="rawRules">The first chunk of the puzzle input that contains the rules.</param>
-        /// <param name="loopRules">Whether rules 8 and 11 are modified to loop (according to part two). If given, <paramref name="longestInputSize"/> needs to be provided.
-        /// The changes are:<br/>
-        /// "8: 42" becomes "8: 42 | 42 8"<br/>
-        /// "11: 42 31" becomes "11: 42 31 | 42 11 31"<br/></param>
+        /// <param name="loopRules">Contains all "loop rules". A loop rule is one that can recurse infinitely. Those need to be handled separately when generating regexes.</param>
         /// <param name="longestInputSize">The longest input size the regexes should be designed to handle. Only matters if <paramref name="loopRules"/> is true</param>
         public RuleToRegexCompiler(string[] rawRules, Dictionary<int, string> loopRules = null, int longestInputSize = 0)
         {
