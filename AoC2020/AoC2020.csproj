@@ -12,6 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Day19_bad.cs" />
+    <Compile Remove="Day19_bad2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Day19_bad.cs" />
+    <None Include="Day19_bad2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Data\Day01.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -64,6 +74,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Data\Day18.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Day19.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
