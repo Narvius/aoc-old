@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Day19_bad.cs" />
-    <None Include="Day19_bad2.cs" />
+    <None Include="FailedCode\Day19_bad.cs" />
+    <None Include="FailedCode\Day19_bad2.cs" />
   </ItemGroup>
 
   <ItemGroup>
