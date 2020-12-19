@@ -37,9 +37,9 @@ namespace AoC2020
         private readonly string[] regexes;
 
         /// <summary>
-        /// 
+        /// Creates an object capable of matching strings against the provided puzzle rules.
         /// </summary>
-        /// <param name="rawRules"></param>
+        /// <param name="rawRules">The first chunk of the puzzle input that contains the rules.</param>
         /// <param name="loopRules">Whether rules 8 and 11 are modified to loop (according to part two). If given, <paramref name="longestInputSize"/> needs to be provided.
         /// The changes are:<br/>
         /// "8: 42" becomes "8: 42 | 42 8"<br/>
