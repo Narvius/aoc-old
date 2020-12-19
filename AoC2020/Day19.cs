@@ -73,29 +73,15 @@ namespace AoC2020
         private string RegexFor(int i)
         {
             // If already computed, return it.
-            if (regexes[i] != null) return regexes[i];
+            if (regexes[i] != null)
+                return regexes[i];
 
             // Simple character-matching rules.
-            if (rules[i] == "a" || rules[i] == "b") return regexes[i] = rules[i];
-
-            var rule = rules[i];
-
-            // If this is a loop rule, overwrite the basic rule with the looped one.
-            if (loopRules.TryGetValue(i, out var loopRule))
-            {
-                var (pre, post) = ParseLoopRule(i, loopRule);
-                var consumptionPerStep = string.Concat(pre, " ", post)
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                    .Sum(n => RuleInputConsumption(int.Parse(n)));
-
-                rule = string.Concat(
-                    "(?:",
-                    string.Join('|', $"{pre} {post}".Unfold(s => $"{pre} {s} {post}").Take(longestInputSize / consumptionPerStep)),
-                    ")");
-            }
+            if (rules[i] == "a" || rules[i] == "b")
+                return regexes[i] = rules[i];
 
             // Expand the rule, handles both normal and loop rules.
-            return regexes[i] = Regex.Replace(rule, @"\d+", match =>
+            return regexes[i] = Regex.Replace(UnrollLoopRule(i) ?? rules[i], @"\d+", match =>
             {
                 var subRegex = RegexFor(int.Parse(match.Value));
                 var hasAlternative = subRegex.Contains('|');
@@ -108,6 +94,28 @@ namespace AoC2020
         }
 
         /// <summary>
+        /// If the argument corresponds to a looped rule, produce an unrolled version of that rule that supports
+        /// parsing inputs up to length equal to <see cref="longestInputSize"/>.
+        /// </summary>
+        /// <param name="i">Rule number.</param>
+        /// <returns>If <paramref name="i"/> corresponds to a looped rule, the unrolled rule; null otherwise.</returns>
+        private string UnrollLoopRule(int i)
+        {
+            if (!loopRules.TryGetValue(i, out var loopRule))
+                return null;
+
+            var (pre, post) = ParseLoopRule(i, loopRule);
+            var consumptionPerStep = string.Concat(pre, " ", post)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Sum(n => RuleInputConsumption(int.Parse(n)));
+
+            return string.Concat(
+                "(?:",
+                string.Join('|', $"{pre} {post}".Unfold(s => $"{pre} {s} {post}").Take(longestInputSize / consumptionPerStep)),
+                ")");
+        }
+
+        /// <summary>
         /// Given a loop rule, returns the parts to the left and the right of the self-looping rule.
         /// </summary>
         /// <param name="i">Rule number.</param>
@@ -115,8 +123,8 @@ namespace AoC2020
         /// <returns>The parts to the left and right of the self-looping rule.</returns>
         private (string pre, string post) ParseLoopRule(int i, string loopRule)
         {
-            var items = loopRule.Replace(i.ToString(), $". {i} .").Split('.');
-            return (items[0].Trim(' '), items[2].Trim(' '));
+            var items = loopRule.Split(i.ToString());
+            return (items[0].Trim(' '), items[1].Trim(' '));
         }
 
         /// <summary>
@@ -127,10 +135,8 @@ namespace AoC2020
         /// <param name="i">Rule number.</param>
         /// <returns>The amount of input characters consumed by the given rule.</returns>
         private int RuleInputConsumption(int i)
-        {
-            if (rules[i] == "a" || rules[i] == "b") return 1;
-
-            return rules[i].Split('|')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Sum(n => RuleInputConsumption(int.Parse(n)));
-        }
+            => rules[i] == "a" || rules[i] == "b"
+            ? 1
+            : rules[i].Split('|')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Sum(n => RuleInputConsumption(int.Parse(n)));
     }
 }
