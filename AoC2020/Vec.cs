@@ -69,6 +69,7 @@ namespace AoC2020
         public static Vec operator *(Vec lhs, int rhs) => new Vec(lhs.X * rhs, lhs.Y * rhs);
         public static Vec operator *(int lhs, Vec rhs) => new Vec(lhs * rhs.X, lhs * rhs.Y);
         public static Vec operator /(Vec lhs, int rhs) => new Vec(lhs.X / rhs, lhs.Y / rhs);
+        public static Vec operator %(Vec lhs, int rhs) => new Vec(lhs.X % rhs, lhs.Y % rhs);
 
         public static Vec operator -(Vec @this) => new Vec(-@this.X, -@this.Y);
 
