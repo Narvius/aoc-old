@@ -21,7 +21,7 @@ namespace AoC2020
         private readonly ImageTile[] tiles;
         private Dictionary<Vec, ImageTile> image = new Dictionary<Vec, ImageTile>();
         private Vec bounds;
-        private int tileSize;
+        private readonly Vec[] deltas = new Vec[] { (1, 0), (0, 1), (-1, 0), (0, -1) };
 
         public SatelliteImage(string[] input)
         {
@@ -29,78 +29,83 @@ namespace AoC2020
         }
 
         public ImageTile[] GetCornerTiles()
-            => (from tile in GetMatchableBorders()
-                where tile.matchableBorders.Length == 2
-                select tile.tile).ToArray();
-
-        private IEnumerable<(ImageTile tile, Direction[] matchableBorders)> GetMatchableBorders()
-            => from tile in tiles
-               from other in tiles
-               where tile != other
-               from border in other.Border.Variations
-               let direction = tile.Border.SharedEdgeWith(border)
-               where direction != null
-               group direction.Value by tile into matchedBorders
-               select (matchedBorders.Key, matchedBorders.Distinct().ToArray());
+        {
+            AssemblePicture();
+            Vec bounds = (image.Keys.Max(p => p.X), image.Keys.Max(p => p.Y));
+            return new[] { image[(0, 0)], image[(bounds.X, 0)], image[(0, bounds.Y)], image[(bounds.X, bounds.Y)] };
+        }
 
         public SatelliteImage AssemblePicture()
         {
-            foreach (var (tile, matchableDirections) in GetMatchableBorders())
-                tile.AssignRestrictedDirections(matchableDirections);
-
-            Vec tileBounds = (int.MaxValue, int.MaxValue);
-
             var toPlace = tiles.ToList();
+            image[Vec.Zero] = toPlace[0];
+            toPlace.RemoveAt(0);
+            var candidates = new Queue<Vec>(deltas);
 
-            var start = toPlace.First(t => t.LeftMostCornerDirection != null);
-            toPlace.Remove(start);
-            image[Vec.Zero] = start;
-            start.T = start.WaysToFit(null, new[] { Direction.Left, Direction.Up }).First();
+            while (candidates.TryDequeue(out var candidate))
+                if (PlaceTile(candidate, toPlace))
+                    foreach (var delta in deltas)
+                        candidates.Enqueue(candidate + delta);
 
-            var candidates = new List<Vec> { (1, 0), (0, 1) };
+            var offset = (image.Keys.Min(p => p.X), image.Keys.Min(p => p.Y));
 
-            while (candidates.Count > 0)
-                for (int i = 0; i < candidates.Count; i++)
-                {
-                    var p = candidates[i];
-                    if (image.ContainsKey(p))
-                    {
-                        candidates.RemoveAt(i);
-                        break;
-                    }
+            image = image.ToDictionary(
+                kvp => kvp.Key - offset,
+                kvp => kvp.Value);
 
-                    var result = PlaceTile(p, tileBounds, toPlace);
-                    if (result == PlacementResult.Succeeded)
-                    {
-                        candidates.AddRange(NewCandidates(p, tileBounds));
-                        candidates.RemoveAt(i);
-
-                        // Nail down the border coordinates after placing the bottom left or top right corner.
-                        if (image[p].LeftMostCornerDirection.HasValue)
-                            if (p.X == 0)
-                            {
-                                tileBounds = (tileBounds.X, p.Y + 1);
-                                candidates.RemoveAll(v => v.Y > p.Y);
-                            }
-                            else if (p.Y == 0)
-                            {
-                                tileBounds = (p.X + 1, tileBounds.Y);
-                                candidates.RemoveAll(v => v.X > p.X);
-                            }
-                        break;
-                    }
-                    else if (result == PlacementResult.Failed)
-                        candidates.RemoveAt(i);
-                }
-
-            bounds = tileBounds * image[(0, 0)].ContentSize;
-            tileSize = image[(0, 0)].ContentSize;
+            bounds = ((image.Keys.Max(p => p.X) + 1) * ImageTile.ContentSize, (image.Keys.Max(p => p.Y) + 1) * ImageTile.ContentSize);
 
             return this;
         }
 
-        const int SeaMonsterHeight = 3;
-        const int SeaMonsterWidth = 20;
+        private bool PlaceTile(Vec p, List<ImageTile> candidates)
+        {
+            if (image.ContainsKey(p))
+                return false;
+
+            var options = from candidate in candidates
+                          from tr in Transform.AllUniqueTransforms
+                          let matchesL = !image.TryGetValue(p - (1, 0), out var left) || left.Right().SequenceEqual(candidate.Left(tr))
+                          let matchesT = !image.TryGetValue(p - (0, 1), out var top) || top.Bottom().SequenceEqual(candidate.Top(tr))
+                          let matchesR = !image.TryGetValue(p + (1, 0), out var right) || right.Left().SequenceEqual(candidate.Right(tr))
+                          let matchesB = !image.TryGetValue(p + (0, 1), out var bottom) || bottom.Top().SequenceEqual(candidate.Bottom(tr))
+                          where matchesL && matchesT && matchesR && matchesB
+                          select (candidate, tr);
+
+            var (tile, transform) = options.FirstOrDefault();
+
+            if (tile != null)
+            {
+                image[p] = tile;
+                tile.Transform = transform;
+                candidates.Remove(tile);
+                return true;
+            }
+
+            return false;
+        }
+
+        public int CalculateSeaRoughness()
+        {
+            int roughness = 0, monsters = 0;
+            for (int y = 0; y < bounds.Y; y++)
+                for (int x = 0; x < bounds.X; x++)
+                {
+                    if (RoughAt((x, y))) roughness++;
+                    if (SeaMonsterAt((x, y))) monsters++;
+                }
+
+            return roughness - monsters * SeaMonsterOffsets.Length;
+        }
+
+        private bool RoughAt(Vec p, Transform t = default)
+        {
+            p = t.Apply(p, bounds);
+            if (image.TryGetValue(p / ImageTile.ContentSize, out var tile))
+                return tile.IsRoughAt(p % ImageTile.ContentSize);
+            return false;
+        }
+
         readonly Vec[] SeaMonsterOffsets = new Vec[]
         {
             (0, 1), (1, 2),
@@ -109,273 +114,50 @@ namespace AoC2020
             (16, 2), (17, 1), (18, 0), (18, 1), (19, 1)
         };
 
-        private void PrintImage(string name, Transform t = default)
-        {
-            using var f = File.Open(name, FileMode.Create);
-            using var sw = new StreamWriter(f);
-
-            for (int y = 0; y < bounds.Y; y++)
-            {
-                for (int x = 0; x < bounds.X; x++)
-                {
-                    var p = t.Apply((x, y), bounds);
-                    sw.Write(image[p / 8][p % 8]);
-                }
-                sw.WriteLine();
-            }
-        }
-
-        public int CalculateSeaRoughness()
-        {
-            return CalculateSeaRoughnessOld();
-
-            var counts = Transform.AllUniqueTransforms.Select(t => CountMonsters(t)).ToArray();
-
-            return image.Sum(p => p.Value.RoughnessScore) - counts.Max() * SeaMonsterOffsets.Length;
-        }
-
-        public int CalculateSeaRoughnessOld()
-        {
-            PrintImage("map.txt");
-            foreach (var transform in Transform.AllUniqueTransforms)
-                MarkMonsters(transform);
-            PrintImage("monster-map.txt");
-
-            return image.Sum(p => p.Value.RoughnessScore);
-        }
-
-        private void MarkMonsters(Transform t)
-        {
-            for (int y = 0; y < bounds.Y; y++)
-                for (int x = 0; x < bounds.X; x++)
-                    if (SeaMonsterAt(t, (x, y)))
-                        foreach (var offset in SeaMonsterOffsets)
-                        {
-                            var po = t.Apply((x, y) + offset, bounds);
-                            image[po / 8][po % 8] = 'O';
-                        }
-        }
-
-        private int CountMonsters(Transform t)
-        {
-            int result = 0;
-            for (int y = 0; y < bounds.Y; y++)
-                for (int x = 0; x < bounds.X; x++)
-                    if (SeaMonsterAt(t, (x, y)))
-                        result++;
-            return result;
-        }
-
-        private bool SeaMonsterAt(Transform t, Vec p)
-            => SeaMonsterOffsets.All(o =>
-            {
-                var po = t.Apply(p + o, bounds);
-                return image.TryGetValue(po / tileSize, out var tile) ? tile[po % 8] == '#' : false;
-            });
-
-        private IEnumerable<Vec> NewCandidates(Vec p, Vec bounds)
-            => from delta in new[] { (-1, 0), (0, -1), (1, 0), (0, 1) }
-               let n = p + delta
-               where 0 <= n.X && n.X < bounds.X && 0 <= n.Y && n.Y < bounds.Y
-               where !image.ContainsKey(n)
-               select n;
-
-        private PlacementResult PlaceTile(Vec p, Vec bounds, List<ImageTile> candidates)
-        {
-            var anchors = GetAnchors(p.X, p.Y);
-            var bannedDirections = GetBannedDirections(p, bounds);
-
-            var items = (from candidate in candidates
-                         from transform in candidate.WaysToFit(anchors, bannedDirections)
-                         select (tile: candidate, transform)).ToArray();
-
-            switch (items.Length)
-            {
-                case 0: return PlacementResult.Failed;
-                case 1:
-                    image[p] = items[0].tile;
-                    items[0].tile.T = items[0].transform;
-                    candidates.Remove(items[0].tile);
-                    return PlacementResult.Succeeded;
-                default: return PlacementResult.Ambiguous;
-            }
-        }
-
-        private (ImageTile tile, Direction moving)[] GetAnchors(int x, int y)
-            => (from (int x, int y, Direction moving) delta in new[] { (-1, 0, Direction.Right), (0, -1, Direction.Down), (1, 0, Direction.Left), (0, 1, Direction.Up) }
-                let key = (x + delta.x, y + delta.y)
-                where image.ContainsKey(key)
-                select (image[key], delta.moving)).ToArray();
-
-        private Direction[] GetBannedDirections(Vec p, Vec bounds)
-            => (from (Direction d, int a, int r) option
-                in new[] { (Direction.Left, 0, p.X), (Direction.Up, 0, p.Y), (Direction.Right, bounds.X - 1, p.X), (Direction.Down, bounds.Y - 1, p.Y) }
-                where option.a == option.r
-                select option.d).ToArray();
+        private bool SeaMonsterAt(Vec p)
+            => Transform.AllUniqueTransforms.Any(t => SeaMonsterOffsets.All(o => RoughAt(p + o, t)));
     }
 
     public class ImageTile
     {
-        private char[,] content;
-        private ImageBorder border;
+        public const int TileSize = 10;
+        public const int ContentSize = 8;
+
+        private bool[,] data;
 
         public long Id { get; }
-        public Transform T;
-        public Direction? LeftMostCornerDirection { get; set; }
-        public Direction? BannedEdgeDirection { get; set; }
-        public int RoughnessScore => content.Cast<char>().Count(c => c == '#');
-
-        public ImageBorder Border => border.TransformedBy(T);
-        public int ContentSize => content.GetLength(0);
+        public Transform Transform { get; set; }
 
         public ImageTile(string[] chunk)
         {
-            Id = long.Parse(chunk[0].Trim('T', 'i', 'l', 'e', ' ', ':'));
-            border = new ImageBorder(chunk);
-            content = new char[chunk.Length - 3, chunk[1].Length - 2];
-            for (int x = 0; x < chunk[1].Length - 2; x++)
-                for (int y = 0; y < chunk.Length - 3; y++)
-                    content[x, y] = chunk[y + 2][x + 1];
+            Id = int.Parse(chunk[0].Trim('T', 'i', 'l', 'e', ':'));
+            data = new bool[TileSize, TileSize];
+
+            for (int y = 0; y < TileSize; y++)
+                for (int x = 0; x < TileSize; x++)
+                    data[x, y] = chunk[y + 1][x] == '#';
         }
 
-        public char this[Vec p]
+        public bool IsRoughAt(Vec p)
         {
-            get
-            {
-                var tp = T.Apply(p, (ContentSize, ContentSize));
-                return content[tp.X, tp.Y];
-            }
-            set
-            {
-                var tp = T.Apply(p, (ContentSize, ContentSize));
-                content[tp.X, tp.Y] = value;
-            }
+            var tp = Transform.Apply(p, (ContentSize, ContentSize));
+            return data[1 + tp.X, 1 + tp.Y];
         }
 
-        public IEnumerable<Transform> WaysToFit((ImageTile tile, Direction moving)[] anchors, Direction[] bannedDirections)
-        {
-            // Can only put corners and edges along edges.
-            if (bannedDirections.Length > 0 && LeftMostCornerDirection == null && BannedEdgeDirection == null)
-                return Enumerable.Empty<Transform>();
+        private bool this[Vec p] => data[p.X, p.Y];
+        private static Vec T(Transform t, Vec v) => t.Apply(v, (TileSize, TileSize));
 
-            bool AvoidsBannedDirections(Transform t)
-            {
-                if (BannedEdgeDirection.HasValue)
-                {
-                    var B = t.Apply(BannedEdgeDirection.Value);
-                    return bannedDirections.Length == 1 && B == bannedDirections[0];
-                }
-                else if (LeftMostCornerDirection.HasValue)
-                {
-                    var L1 = t.Apply(LeftMostCornerDirection.Value);
-                    var L2 = t.Apply((Direction)(((int)LeftMostCornerDirection.Value + 1) % 4));
-                    return !bannedDirections.Contains(L1) && !bannedDirections.Contains(L2);
-                }
-
-                return true;
-            }
-
-            return (from transform in Transform.AllUniqueTransforms
-                    where AvoidsBannedDirections(transform)
-                    let transformedBorder = border.TransformedBy(transform)
-                    where anchors?.All(anchor => anchor.tile.Border.SharedEdgeWith(transformedBorder) == anchor.moving) ?? true
-                    select transform).ToArray(); 
-        }
-
-        public void AssignRestrictedDirections(Direction[] matchableDirections)
-        {
-            switch (matchableDirections.Length)
-            {
-                case 2: LeftMostCornerDirection = Enum.GetValues(typeof(Direction)).Cast<Direction>().First(d => matchableDirections.Contains(d) && matchableDirections.Contains((Direction)((1 + (int)d) % 4))); return;
-                case 3: BannedEdgeDirection = Enum.GetValues(typeof(Direction)).Cast<Direction>().First(d => !matchableDirections.Contains(d)); return;
-                default: return;
-            }
-        }
+        public IEnumerable<bool> Left(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(0, y))]);
+        public IEnumerable<bool> Top(Transform? t = null) => Enumerable.Range(0, TileSize).Select(x => this[T(t ?? Transform, new Vec(x, 0))]);
+        public IEnumerable<bool> Right(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(TileSize - 1, y))]);
+        public IEnumerable<bool> Bottom(Transform? t = null) => Enumerable.Range(0, TileSize).Select(x => this[T(t ?? Transform, new Vec(x, TileSize - 1))]);
     }
 
-    [DebuggerDisplay("({Left}, {Top}, {Right}, {Bottom}) [{T}]")]
-    public readonly struct ImageBorder
-    {
-        public readonly ushort BaseLeft;
-        public readonly ushort BaseTop;
-        public readonly ushort BaseRight;
-        public readonly ushort BaseBottom;
-        public readonly Transform T;
-
-        public ushort Left => EdgeFromTransformation(Direction.Left);
-        public ushort Top => EdgeFromTransformation(Direction.Up);
-        public ushort Right => EdgeFromTransformation(Direction.Right);
-        public ushort Bottom => EdgeFromTransformation(Direction.Down);
-
-        public ImageBorder(
-            ushort left, ushort top, ushort right, ushort bottom, Transform transform = default)
-            =>  (BaseLeft, BaseTop, BaseRight, BaseBottom, T) = (left, top, right, bottom, transform);
-
-        public ImageBorder(string[] chunk)
-        {
-            string MakeBinaryString(IEnumerable<char> chars)
-                => new string(chars.Reverse().ToArray()).Replace('#', '1').Replace('.', '0');
-
-            var leftString = MakeBinaryString(chunk.Skip(1).Select(line => line[0]));
-            var topString = MakeBinaryString(chunk[1]);
-            var rightString = MakeBinaryString(chunk.Skip(1).Select(line => line.Last()));
-            var bottomString = MakeBinaryString(chunk.Last());
-
-            (BaseLeft, BaseTop, BaseRight, BaseBottom, T) = (Convert.ToUInt16(leftString, 2), Convert.ToUInt16(topString, 2), Convert.ToUInt16(rightString, 2), Convert.ToUInt16(bottomString, 2), default);
-        }
-
-        public ImageBorder TransformedBy(Transform t) => new ImageBorder(BaseLeft, BaseTop, BaseRight, BaseBottom, t);
-        public ImageBorder Rotate => TransformedBy(T.Rotate);
-        public ImageBorder FlipH => TransformedBy(T.FlipH);
-        public ImageBorder FlipV => TransformedBy(T.FlipV);
-
-        public ImageBorder[] Variations
-        {
-            get
-            {
-                var @this = this;
-                return Transform.AllUniqueTransforms.Select(t => @this.TransformedBy(t)).ToArray();
-            }
-        }
-
-        private ushort EdgeFromTransformation(Direction direction)
-        {
-            var (d, f) = T.MapEdge(direction);
-
-            var raw = d switch { Direction.Left => BaseLeft, Direction.Up => BaseTop, Direction.Right => BaseRight, Direction.Down => BaseBottom, _ => throw new Exception() };
-
-            return f ? Reverse(raw) : raw;
-        }
-
-        private static ushort Reverse(ushort value)
-        {
-            int result = 0;
-            for (int i = 0; i < 10; i++)
-            {
-                var bit = (value & (1 << i)) >> i;
-                result |= bit << (9 - i);
-            }
-            return (ushort)result;
-        }
-
-        public Direction? SharedEdgeWith(ImageBorder other)
-        {
-            if (Left == other.Right) return Direction.Left;
-            if (Top == other.Bottom) return Direction.Up;
-            if (Right == other.Left) return Direction.Right;
-            if (Bottom == other.Top) return Direction.Down;
-            return null;
-        }
-    }
-
-    [DebuggerDisplay("{StatusString}")]
     public readonly struct Transform
     {
         public readonly bool R;
         public readonly bool H;
         public readonly bool V;
-
-        public string StatusString => $"{(R ? "R" : ".")}{(H ? "H" : ".")}{(V ? "V" : ".")}";
 
         public Transform(bool r, bool h, bool v)
             => (R, H, V) = (r, h, v);
@@ -389,40 +171,6 @@ namespace AoC2020
         public Transform Rotate => new Transform(!R, V ^ R, H ^ R);
         public Transform FlipH => new Transform(R, !H, V);
         public Transform FlipV => new Transform(R, H, !V);
-
-        public Direction Apply(Direction direction)
-        {
-            var horizontal = R ^ ((int)direction % 2) == 0;
-
-            if (R) direction = (Direction)(((int)direction + 1) % 4);
-            if (H && horizontal) direction = 2 - direction;
-            if (V && !horizontal) direction = 4 - direction;
-
-            return direction;
-        }
-
-        public (Direction direction, bool flipped) MapEdge(Direction direction)
-        {
-            var flipped = IsBorderEdgeFlipped(direction);
-
-            if (R) direction = (Direction)(((int)direction + 3) % 4);
-            var horizontal = ((int)direction % 2) == 0;
-            var (h, v) = R ? (V, H) : (H, V);
-            if (h && horizontal) direction = 2 - direction;
-            if (v && !horizontal) direction = 4 - direction;
-
-            return (direction, flipped);
-        }
-
-        public bool IsBorderEdgeFlipped(Direction direction)
-        {
-            var horizontal = ((int)direction % 2) == 0;
-            var affectedByRotation = R & !horizontal;
-            var affectedByH = H && !horizontal;
-            var affectedByV = V && horizontal;
-
-            return affectedByRotation ^ affectedByH ^ affectedByV;
-        }
 
         public Vec Apply(Vec p, Vec bounds)
         {
@@ -444,7 +192,4 @@ namespace AoC2020
             return result;
         }
     }
-
-    public enum PlacementResult : byte { Failed, Ambiguous, Succeeded }
-    public enum Direction : byte { Left, Up, Right, Down }
 }
