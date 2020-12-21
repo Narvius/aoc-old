@@ -49,21 +49,17 @@ namespace AoC2020
         /// </summary>
         private void AssemblePicture()
         {
-            var toPlace = tiles.ToList();
-            image[Vec.Zero] = toPlace[0];
-            toPlace.RemoveAt(0);
-            var candidates = new Queue<Vec>(deltas);
+            var candidates = tiles.ToList();
+            var openCoordinates = new Queue<Vec>(new[] { Vec.Zero });
 
-            while (candidates.TryDequeue(out var candidate))
-                if (PlaceTile(candidate, toPlace))
+            while (openCoordinates.TryDequeue(out var p))
+                if (PlaceTile(p, candidates))
                     foreach (var delta in deltas)
-                        candidates.Enqueue(candidate + delta);
+                        openCoordinates.Enqueue(p + delta);
 
+            // Shift entire image to start at (0, 0) and use positive coordinates.
             var offset = (image.Keys.Min(p => p.X), image.Keys.Min(p => p.Y));
-
-            image = image.ToDictionary(
-                kvp => kvp.Key - offset,
-                kvp => kvp.Value);
+            image = image.ToDictionary(kvp => kvp.Key - offset, kvp => kvp.Value);
 
             bounds = ((image.Keys.Max(p => p.X) + 1) * ImageTile.ContentSize, (image.Keys.Max(p => p.Y) + 1) * ImageTile.ContentSize);
         }
