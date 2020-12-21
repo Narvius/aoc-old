@@ -9,13 +9,18 @@ namespace AoC2020
 {
     public class Day20 : ISolution
     {
+        // Identify the corner tiles of the image and multiply together their Ids.
         public string PartOne(string[] lines)
             => new SatelliteImage(lines).GetCornerTiles().Aggregate(1L, (n, t) => n * t.Id).ToString();
 
+        // Identify the number of rough (#) tiles that aren't part of a sea monster.
         public string PartTwo(string[] lines)
-            => new SatelliteImage(lines).AssemblePicture().CalculateSeaRoughness().ToString();
+            => new SatelliteImage(lines).CalculateSeaRoughness().ToString();
     }
 
+    /// <summary>
+    /// The full satellite image.
+    /// </summary>
     public class SatelliteImage
     {
         private readonly ImageTile[] tiles;
@@ -26,16 +31,23 @@ namespace AoC2020
         public SatelliteImage(string[] input)
         {
             tiles = input.ChunkBy(string.IsNullOrEmpty, true).Select(chunk => new ImageTile(chunk.ToArray())).ToArray();
+            AssemblePicture();
         }
 
+        /// <summary>
+        /// Gets the corner tiles of the image.
+        /// </summary>
+        /// <returns>An array containins the corner tiles of the image.</returns>
         public ImageTile[] GetCornerTiles()
         {
-            AssemblePicture();
             Vec bounds = (image.Keys.Max(p => p.X), image.Keys.Max(p => p.Y));
             return new[] { image[(0, 0)], image[(bounds.X, 0)], image[(0, bounds.Y)], image[(bounds.X, bounds.Y)] };
         }
 
-        public SatelliteImage AssemblePicture()
+        /// <summary>
+        /// Builds the picture by picking a random tile to start with and just attaching other tiles to it.
+        /// </summary>
+        private void AssemblePicture()
         {
             var toPlace = tiles.ToList();
             image[Vec.Zero] = toPlace[0];
@@ -54,10 +66,14 @@ namespace AoC2020
                 kvp => kvp.Value);
 
             bounds = ((image.Keys.Max(p => p.X) + 1) * ImageTile.ContentSize, (image.Keys.Max(p => p.Y) + 1) * ImageTile.ContentSize);
-
-            return this;
         }
 
+        /// <summary>
+        /// Places a tile in the image.
+        /// </summary>
+        /// <param name="p">The coordinate to fill</param>
+        /// <param name="candidates">Tiles that still need to be placed.</param>
+        /// <returns>True if a tile was placed, false otherwise.</returns>
         private bool PlaceTile(Vec p, List<ImageTile> candidates)
         {
             if (image.ContainsKey(p))
@@ -85,6 +101,10 @@ namespace AoC2020
             return false;
         }
 
+        /// <summary>
+        /// Counts the number of # tiles and sea monsters in the image, and calculates the total sea roughness based on those.
+        /// </summary>
+        /// <returns>The total sea roughness.</returns>
         public int CalculateSeaRoughness()
         {
             int roughness = 0, monsters = 0;
@@ -98,14 +118,24 @@ namespace AoC2020
             return roughness - monsters * SeaMonsterOffsets.Length;
         }
 
-        private bool RoughAt(Vec p, Transform t = default)
-        {
-            p = t.Apply(p, bounds);
-            if (image.TryGetValue(p / ImageTile.ContentSize, out var tile))
-                return tile.IsRoughAt(p % ImageTile.ContentSize);
-            return false;
-        }
+        /// <summary>
+        /// Checks if, under the given transform, the given coordinates are rough (ie. contain a '#').
+        /// </summary>
+        /// <param name="p">The coordinates to check.</param>
+        /// <returns>True if the tile is rough, false otherwise.</returns>
+        private bool RoughAt(Vec p)
+            => image.TryGetValue(p / ImageTile.ContentSize, out var tile) && tile.IsRoughAt(p % ImageTile.ContentSize);
 
+        /// <summary>
+        /// Checks if the given tile is the (possibly-transformed) top-left corner of a sea monster.
+        /// </summary>
+        /// <remarks>The monster may be oriented any of the 8 possible ways, hance "possibly-transformed".</remarks>
+        /// <param name="p">The coordinates to check.</param>
+        /// <returns>True if the tile is the top-left corner of a sea monster, false otherwise.</returns>
+        private bool SeaMonsterAt(Vec p)
+            => Transform.AllUniqueTransforms.Any(t => SeaMonsterOffsets.All(o => RoughAt(t.Apply(p + o, bounds))));
+
+        // Describes the shape of a sea monster.
         readonly Vec[] SeaMonsterOffsets = new Vec[]
         {
             (0, 1), (1, 2),
@@ -113,11 +143,11 @@ namespace AoC2020
             (10, 2), (11, 1), (12, 1), (13, 2),
             (16, 2), (17, 1), (18, 0), (18, 1), (19, 1)
         };
-
-        private bool SeaMonsterAt(Vec p)
-            => Transform.AllUniqueTransforms.Any(t => SeaMonsterOffsets.All(o => RoughAt(p + o, t)));
     }
 
+    /// <summary>
+    /// A piece of the satellite image.
+    /// </summary>
     public class ImageTile
     {
         public const int TileSize = 10;
@@ -126,6 +156,11 @@ namespace AoC2020
         private bool[,] data;
 
         public long Id { get; }
+
+        /// <summary>
+        /// The current transform for this tile. Accesses through <see cref="IsRoughAt"/> as well as the four border-querying
+        /// calls will all have this applied already.
+        /// </summary>
         public Transform Transform { get; set; }
 
         public ImageTile(string[] chunk)
@@ -137,7 +172,6 @@ namespace AoC2020
                 for (int x = 0; x < TileSize; x++)
                     data[x, y] = chunk[y + 1][x] == '#';
         }
-
         public bool IsRoughAt(Vec p)
         {
             var tp = Transform.Apply(p, (ContentSize, ContentSize));
@@ -147,31 +181,78 @@ namespace AoC2020
         private bool this[Vec p] => data[p.X, p.Y];
         private static Vec T(Transform t, Vec v) => t.Apply(v, (TileSize, TileSize));
 
+        /// <summary>
+        /// Returns the left border of this tile under the given transform..
+        /// </summary>
+        /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
+        /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Left(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(0, y))]);
+
+        /// <summary>
+        /// Returns the top border of this tile under the given transform..
+        /// </summary>
+        /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
+        /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Top(Transform? t = null) => Enumerable.Range(0, TileSize).Select(x => this[T(t ?? Transform, new Vec(x, 0))]);
+
+        /// <summary>
+        /// Returns the right border of this tile under the given transform..
+        /// </summary>
+        /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
+        /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Right(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(TileSize - 1, y))]);
+
+        /// <summary>
+        /// Returns the bottom border of this tile under the given transform..
+        /// </summary>
+        /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
+        /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Bottom(Transform? t = null) => Enumerable.Range(0, TileSize).Select(x => this[T(t ?? Transform, new Vec(x, TileSize - 1))]);
     }
 
+    /// <summary>
+    /// Describes a spatial transformation allowing for rotations by 90 degrees, as well as flips.
+    /// </summary>
     public readonly struct Transform
     {
-        public readonly bool R;
-        public readonly bool H;
-        public readonly bool V;
+        public readonly bool R; // Rotation right by 90 degrees.
+        public readonly bool H; // Horizontal flip.
+        public readonly bool V; // Vertical flip.
 
         public Transform(bool r, bool h, bool v)
             => (R, H, V) = (r, h, v);
 
+        /// <summary>
+        /// Gets every possible spatial transformation given the restrictions.
+        /// There are 8 valid ones.
+        /// </summary>
         public static IEnumerable<Transform> AllUniqueTransforms
             => from r in new[] { false, true }
                from h in new[] { false, true }
                from v in new[] { false, true }
                select new Transform(r, h, v);
 
+        /// <summary>
+        /// This transform but with a 90 degree rotation right added.
+        /// </summary>
         public Transform Rotate => new Transform(!R, V ^ R, H ^ R);
+
+        /// <summary>
+        /// This transform but with a horizontal flip added.
+        /// </summary>
         public Transform FlipH => new Transform(R, !H, V);
+
+        /// <summary>
+        /// This transform buy with a vertical flip added.
+        /// </summary>
         public Transform FlipV => new Transform(R, H, !V);
 
+        /// <summary>
+        /// Applies the transform to a set of coordinates.
+        /// </summary>
+        /// <param name="p">The coordinates.</param>
+        /// <param name="bounds">The bounds of the coordinate space.</param>
+        /// <returns>The transformed coordinates.</returns>
         public Vec Apply(Vec p, Vec bounds)
         {
             int Flip(int v, int b) => (2 * b - v - 1) % b;
@@ -181,15 +262,6 @@ namespace AoC2020
             if (V) p = (p.X, Flip(p.Y, bounds.Y));
 
             return p;
-        }
-
-        public static Transform operator *(Transform lhs, Transform rhs)
-        {
-            var result = lhs;
-            if (rhs.R) result = result.Rotate;
-            if (rhs.H) result = result.FlipH;
-            if (rhs.V) result = result.FlipV;
-            return result;
         }
     }
 }
