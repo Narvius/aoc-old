@@ -32,9 +32,8 @@ namespace AoC2020
         /// </summary>
         private int StateHash
             => HashCode.Combine(
-                p1.ElementAtOrDefault(0), p1.ElementAtOrDefault(1), p1.ElementAtOrDefault(2),
-                -1,
-                p2.ElementAtOrDefault(0), p2.ElementAtOrDefault(1), p2.ElementAtOrDefault(2));
+                p1.ElementAtOrDefault(0), p1.ElementAtOrDefault(1), p1.ElementAtOrDefault(2), p1.ElementAtOrDefault(3),
+                p2.ElementAtOrDefault(0), p2.ElementAtOrDefault(1), p2.ElementAtOrDefault(2), p2.ElementAtOrDefault(3));
 
         public Combat(string[] input, bool recursive = false)
         {
