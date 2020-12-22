@@ -178,28 +178,28 @@ namespace AoC2020
         private static Vec T(Transform t, Vec v) => t.Apply(v, (TileSize, TileSize));
 
         /// <summary>
-        /// Returns the left border of this tile under the given transform..
+        /// Returns the left border of this tile under the given transform.
         /// </summary>
         /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
         /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Left(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(0, y))]);
 
         /// <summary>
-        /// Returns the top border of this tile under the given transform..
+        /// Returns the top border of this tile under the given transform.
         /// </summary>
         /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
         /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Top(Transform? t = null) => Enumerable.Range(0, TileSize).Select(x => this[T(t ?? Transform, new Vec(x, 0))]);
 
         /// <summary>
-        /// Returns the right border of this tile under the given transform..
+        /// Returns the right border of this tile under the given transform.
         /// </summary>
         /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
         /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
         public IEnumerable<bool> Right(Transform? t = null) => Enumerable.Range(0, TileSize).Select(y => this[T(t ?? Transform, new Vec(TileSize - 1, y))]);
 
         /// <summary>
-        /// Returns the bottom border of this tile under the given transform..
+        /// Returns the bottom border of this tile under the given transform.
         /// </summary>
         /// <param name="t">Transform to use. Defaults to <see cref="Transform"/>.</param>
         /// <returns>The border as an enumeration of bools (true = '#', false = '.').</returns>
