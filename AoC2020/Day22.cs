@@ -66,15 +66,6 @@ namespace AoC2020
         }
 
         /// <summary>
-        /// During recursive games, remembers the current state for the 
-        /// </summary>
-        private void RegisterPreviousState()
-        {
-            if (recursive)
-                previousStateHashes.Add(StateHash);
-        }
-
-        /// <summary>
         /// Keeps performing steps of the game until one player wins.
         /// </summary>
         /// <returns>False if player 1 won, true if player 2 won.</returns>
@@ -82,10 +73,14 @@ namespace AoC2020
         {
             while (p1.Count > 0 && p2.Count > 0)
             {
-                if (previousStateHashes.Contains(StateHash))
-                    return false;
+                if (recursive)
+                {
+                    var hash = StateHash;
+                    if (previousStateHashes.Contains(hash))
+                        return false;
+                    previousStateHashes.Add(hash);
+                }
 
-                RegisterPreviousState();
                 Step();
             }
             return p2.Count > 0;
