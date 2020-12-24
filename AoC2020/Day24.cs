@@ -38,9 +38,8 @@ namespace AoC2020
             var blackTiles = new HashSet<Vec>();
             foreach (var line in input)
             {
-                Vec p = Vec.Zero;
-                foreach (var dir in line.ChunkBy(c => c == 'e' || c == 'w').Select(cs => new string(cs.ToArray())).Where(cs => cs.Length > 0).ToArray())
-                    p += directionDeltas[dir];
+                var p = line.ChunkBy(c => c == 'e' || c == 'w').Select(cs => new string(cs.ToArray())).Where(s => s.Length > 0)
+                    .Aggregate(Vec.Zero, (v, s) => v + directionDeltas[s]);
                 if (blackTiles.Contains(p))
                     blackTiles.Remove(p);
                 else
