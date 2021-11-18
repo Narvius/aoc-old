@@ -35,11 +35,7 @@ fn points_after_time(reindeer_stats: &[(u32, u32, u32)], seconds: u32) -> u32 {
                 furthest = std::cmp::max(distances[i], furthest);
             }
 
-            cycle[i] += 1;
-
-            if cycle[i] == travel_time + rest_time {
-                cycle[i] = 0;
-            }
+            cycle[i] = (cycle[i] + 1) % (travel_time + rest_time);
         }
 
         for i in 0..distances.len() {
