@@ -1,0 +1,18 @@
+[package]
+name = "solutions"
+version = "0.1.0"
+authors = ["Philipp Lange <narvius@gmail.com>"]
+edition = "2018"
+description = "Advent of Code solutions."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+itertools = "0.10"
+md5 = "0.7"
+lazy_static = "1.4"
+regex = "1.5"
+
+autokey = { path = "../autokey" }
+keys = { path = "../keys" }

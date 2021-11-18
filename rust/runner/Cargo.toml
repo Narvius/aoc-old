@@ -1,0 +1,13 @@
+[package]
+name = "runner"
+version = "0.1.0"
+authors = ["Philipp Lange <narvius@gmail.com>"]
+edition = "2018"
+description = "Command line-based runner for Advent of Code solutions."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+keys = { path = "../keys" }
+solutions = { path = "../solutions" }
