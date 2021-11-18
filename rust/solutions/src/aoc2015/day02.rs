@@ -1,17 +1,15 @@
-use crate::util::{min_of, max_of, sum_of};
-
 /// Calculate the amount of wrapping paper needed according to specification.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
     Ok(sum_for_each_present(input, |(l, w, h)| {
         let items = [l * w, w * h, h * l];
-        sum_of(&items) + min_of(&items).unwrap()
+        items.iter().copied().sum::<u32>() + &items.iter().copied().min().unwrap()
     }).to_string())
 }
 
 /// Calculate the amount of ribbon needed according to specification.
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     Ok(sum_for_each_present(input, |(l, w, h)| {
-        (l + w + h - max_of(&[l, w, h]).unwrap()) * 2 + l * w * h
+        (l + w + h + l * w * h - &[l, w, h].iter().copied().max().unwrap()) * 2 
     }).to_string())
 }
 
