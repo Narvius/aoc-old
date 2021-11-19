@@ -34,7 +34,8 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     // Brute force lmao. The calorie restriction actually vastly limits the search space, thus
     // making brute force more viable than in part 1!
 
-    // Recursively loops through all possible `choices` that match 
+    // Recursively loops through all possible recipes (given the calorie restriction) and assigns
+    // the highest found score to `best`.
     fn find_best_recipe_score(index: usize, ingredients: &[Vec<i32>], choices: &mut [i32], best: &mut i32, slots: i32, calories: i32) {
         if index == ingredients.len() - 1 {
             // Last ingredient doesn't need to be looped: Instead we just give all remaining slots
