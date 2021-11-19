@@ -73,14 +73,6 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     Ok(best.to_string())
 }
 
-/// Given a list of amount choices made so far, returns an upper bounds for how many you could
-/// conceivably pick of the next ingredient.
-fn maximum_possible_units(ingredients: &Vec<Vec<i32>>, choices: &[i32]) -> i32 {
-    let remaining_slots = 100 - choices.iter().copied().sum::<i32>();
-    let remaining_calories = 500 - (0..choices.len()).map(|i| ingredients[i][4] * choices[i]).sum::<i32>();
-    std::cmp::min(remaining_slots, remaining_calories / ingredients[choices.len()][4])
-}
-
 /// Scores a cookie recipe according to the rules in the problem.
 fn score(ingredients: &[Vec<i32>], counts: &[i32]) -> i32 {
     let mut subscores = vec![0i32; 4];
@@ -89,7 +81,7 @@ fn score(ingredients: &[Vec<i32>], counts: &[i32]) -> i32 {
             subscores[j] += ingredients[i][j] * counts[i];
         }
     }
-    subscores.iter().take(4).copied().reduce(|a, b| std::cmp::max(a, 0) * std::cmp::max(b, 0)).unwrap()
+    subscores.iter().take(4).copied().map(|x| std::cmp::max(x, 0)).reduce(|a, b| a * b).unwrap()
 }
 
 /// Extracts the properties of an ingredient from a line of puzzle input.
@@ -110,6 +102,14 @@ fn parse_line(s: &str) -> Option<Vec<i32>> {
 
 // Old solution. It assumed there will always be exactly 4 ingredients.
 fn _part2_first_solution(input: &[&str]) -> anyhow::Result<String> {
+    // Given a list of amount choices made so far, returns an upper bounds for how many you could
+    // conceivably pick of the next ingredient.
+    fn maximum_possible_units(ingredients: &Vec<Vec<i32>>, choices: &[i32]) -> i32 {
+        let remaining_slots = 100 - choices.iter().copied().sum::<i32>();
+        let remaining_calories = 500 - (0..choices.len()).map(|i| ingredients[i][4] * choices[i]).sum::<i32>();
+        std::cmp::min(remaining_slots, remaining_calories / ingredients[choices.len()][4])
+    }
+
     let ingredients =  {
         // sort by calories descending, to minimize the number of loops we're doing later
         let mut temp = input.iter().map(|s| parse_line(s).unwrap()).collect::<Vec<_>>();
