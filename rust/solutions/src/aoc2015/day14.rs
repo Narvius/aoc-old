@@ -45,7 +45,7 @@ fn points_after_time(reindeer_stats: &[(u32, u32, u32)], seconds: u32) -> u32 {
         }
     }
 
-    crate::util::max_of(&scores).unwrap()
+    scores.iter().copied().max().unwrap()
 }
 
 /// Extracts the speed, travel time and rest time from a line of puzzle input.
