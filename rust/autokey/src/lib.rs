@@ -13,8 +13,8 @@
 //! aocXXXX/
 //!   ...
 //! 
-//! Then, put `autokey::events!("src");` in lib.rs, and then everything will be generated
-//! automatically.
+//! Then, put `autokey::events!("src");` in lib.rs, and the aforementioned `mod`s and helper
+//! functions will be generated in it.
 //! 
 //! Solution files need to contain two functions:
 //! 
@@ -24,7 +24,7 @@
 //! }
 //!
 //! pub fn part2(_input: &[&str]) -> anyhow::Result<String> {
-//!    Err(anyhow::anyhow!("unimplemented"))
+//!     Err(anyhow::anyhow!("unimplemented"))
 //! }
 //! ```
 //! 
