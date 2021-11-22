@@ -24,14 +24,12 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     // Maps 'amount of containers used' to 'ways to use that many containers'.
     let mut buckets: HashMap<u32, u32> = HashMap::new();
     for mask in 0..2u32.pow(containers.len() as u32) {
-        let (sum, container_count) = resolve_mask(&containers, mask);
-        if sum == 150 {
+        if let (150, container_count) = resolve_mask(&containers, mask) {
             *buckets.entry(container_count).or_insert(0) += 1;
         }
     }
 
-    let key = buckets.keys().min().unwrap();
-    Ok(buckets[key].to_string())
+    Ok(buckets.iter().min_by_key(|p| p.0).unwrap().1.to_string())
 }
 
 /// Given a mask where the `n`th bit (starting from least significant) describes whether the `n`th
