@@ -16,7 +16,7 @@
 //! Then, put `autokey::events!("src");` in lib.rs, and the aforementioned `mod`s and helper
 //! functions will be generated in it.
 //! 
-//! Solution files need to contain two functions:
+//! It is assumed solution files contain two functions with these names and signatures:
 //! 
 //! ```
 //! pub fn part1(_input: &[&str]) -> anyhow::Result<String> {
