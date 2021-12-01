@@ -43,7 +43,7 @@ fn solutions_from_args() -> Option<Vec<Solution>> {
             let mut result = vec![];
             for day in 1..=25 {
                 for c in "ab".chars() {
-                    if let Some(s) = Solution::from_keyspec(&format!("15{:02}{}", day, c)) {
+                    if let Some(s) = Solution::from_keyspec(&format!("21{:02}{}", day, c)) {
                         result.push(s);
                     }
                 }
@@ -53,8 +53,8 @@ fn solutions_from_args() -> Option<Vec<Solution>> {
             let day = args[1].parse::<u8>().unwrap();
 
             vec![
-                Solution::from_keyspec(&format!("15{:02}a", day))?,
-                Solution::from_keyspec(&format!("15{:02}b", day))?]
+                Solution::from_keyspec(&format!("21{:02}a", day))?,
+                Solution::from_keyspec(&format!("21{:02}b", day))?]
         } else {
             vec![]
         })
