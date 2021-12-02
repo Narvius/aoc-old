@@ -1,27 +1,27 @@
 /// Run the submarine course, reading the commands in a simple way.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
-    let (mut h, mut d) = (0i32, 0i32);
-    for cmd in input.iter().map(|s| s.parse::<Command>().unwrap()) {
-        match cmd.direction {
-            Direction::Up => d -= cmd.delta,
-            Direction::Down => d += cmd.delta,
-            Direction::Forward => h += cmd.delta,
-        }
-    }
+    let (h, d) = input.iter()
+        .map(|s| s.parse::<Command>().unwrap())
+        .fold((0i32, 0i32), |(h, d), cmd| match cmd.direction {
+            Direction::Up => (h, d - cmd.delta),
+            Direction::Down => (h, d + cmd.delta),
+            Direction::Forward => (h + cmd.delta, d),
+        });
+
     Ok((h * d).to_string())
 }
 
 /// Run the submarine course, reading the commands in a slightly convoluted way described in the
 /// problem statement.
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
-    let (mut h, mut d, mut a) = (0i32, 0i32, 0i32);
-    for cmd in input.iter().map(|s| s.parse::<Command>().unwrap()) {
-        match cmd.direction {
-            Direction::Up => a -= cmd.delta,
-            Direction::Down => a += cmd.delta,
-            Direction::Forward => { h += cmd.delta; d += a * cmd.delta; },
-        }
-    }
+    let (h, d, _) = input.iter()
+        .map(|s| s.parse::<Command>().unwrap())
+        .fold((0i32, 0i32, 0i32), |(h, d, a), cmd| match cmd.direction {
+            Direction::Up => (h, d, a - cmd.delta),
+            Direction::Down => (h, d, a + cmd.delta),
+            Direction::Forward => (h + cmd.delta, d + a * cmd.delta, a),
+        });
+        
     Ok((h * d).to_string())
 }
 
