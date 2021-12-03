@@ -33,26 +33,21 @@ fn find_rating(data: &[&str], partition: Ordering, tiebreaker: u8) -> u32 {
     let mut candidates: Vec<_> = data.iter().map(|&s| s).collect();
 
     for i in 0..data[0].len() {
-        if candidates.len() == 1 {
-            break;
+        // split the candidates list into those for which the relevant bit is '0', and for which
+        // the relevant bit is '1'.
+        let zero_count = crate::util::separate_by(&mut candidates, &b'0', |s| &s.as_bytes()[i]);
+        let one_partition = candidates.split_off(zero_count);
+
+        // at this point, 'candidates' is the 'zero' partition, and 'one_partition' is the, well,
+        // 'one' partition. Now, decide which of these to keep, and store it in 'candidates'. The
+        // other partition is dropped and deallocated.
+        match zero_count.cmp(&one_partition.len()) {
+            Ordering::Equal => if tiebreaker == b'1' { candidates = one_partition; },
+            ordering => if ordering != partition { candidates = one_partition; },
         }
 
-        // decide which bit to keep
-        let ones = candidates.iter().filter(|s| s.as_bytes()[i] == b'1').count();
-        let to_keep = match (2 * ones).cmp(&candidates.len()) {
-            Ordering::Equal => tiebreaker,
-            ones_partition if ones_partition == partition => b'1',
-            _ => b'0',
-        };
-
-        // remove all candidates without the matching bit
-        let mut n = 0;
-        while n < candidates.len() {
-            if candidates[n].as_bytes()[i] != to_keep {
-                candidates.remove(n);
-            } else {
-                n += 1;
-            }
+        if candidates.len() == 1 {
+            break;
         }
     }
 
