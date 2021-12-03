@@ -17,7 +17,7 @@ fn main() {
                 solution.key.day as u8,
                 match solution.key.part { Part::One => 'a', Part::Two => 'b' },
                 a,
-                { let m = as_seconds(runtime); if m == 0.0 { format!("less than 0.001") } else { format!{"{}", m} }}),
+                duration_as_string(runtime)),
             (Err(e), _) => println!("(FAILED) Day {:02}{}: {}",
                 solution.key.day as u8,
                 match solution.key.part { Part::One => 'a', Part::Two => 'b' },
@@ -26,13 +26,18 @@ fn main() {
     }
 
     let end = Instant::now();
-    println!("Total runtime: {}s", as_seconds(end.duration_since(start)));
+    println!("Total runtime: {}s", duration_as_string(end.duration_since(start)));
 }
 
 /// The number seconds in the [`std::time::Duration`], with three significant digits of fractional
 /// precision.
-fn as_seconds(duration: Duration) -> f32 {
-    (duration.as_millis() as f32) / 1000.0
+fn duration_as_string(duration: Duration) -> String {
+    let value = (duration.as_millis() as f32) / 1000.0;
+    if value == 0.0 {
+        String::from("less than 0.001")
+    } else {
+        format!("{}", value)
+    }
 }
 
 fn solutions_from_args() -> Option<Vec<Solution>> {
