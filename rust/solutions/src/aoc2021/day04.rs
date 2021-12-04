@@ -5,7 +5,7 @@ pub fn part1(input: &[&str]) -> anyhow::Result<String> {
     let mut bingo = Bingo::from_input(input);
     while let Some(number) = bingo.draw_number() {
         if let Some(board) = bingo.find_finished_board() {
-            let sum: u32 = bingo.boards[board].iter().filter(|f| !f.0).map(|f| f.1).sum();
+            let sum: u32 = bingo.boards[board].iter().filter_map(|&f| f).sum();
             return Ok((sum * number).to_string());
         }
     }
@@ -19,7 +19,7 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     while let Some(number) = bingo.draw_number() {
         while let Some(board) = bingo.find_finished_board() {
             if bingo.boards.len() == 1 {
-                let sum: u32 = bingo.boards[board].iter().filter(|f| !f.0).map(|f| f.1).sum();
+                let sum: u32 = bingo.boards[board].iter().filter_map(|&f| f).sum();
                 return Ok((sum * number).to_string());
             } else {
                 bingo.boards.remove(board);
@@ -33,25 +33,19 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
 /// Represents the whole Bingo game described by `input`.
 struct Bingo {
     draws: VecDeque<u32>,
-    boards: Vec<Vec<(bool, u32)>>,
+    boards: Vec<Vec<Option<u32>>>,
 }
 
 impl Bingo {
     /// Parses `input` into a `Bingo` game.
     fn from_input(input: &[&str]) -> Bingo {
-        let mut it = input.iter().map(|&s| s);
+        let draws: VecDeque<_> = input[0].split(',').map(|s| s.parse().unwrap()).collect();
+        let mut boards = Vec::with_capacity(input.len() / 6);
 
-        let draws: VecDeque<_> = it.next().unwrap().split(',')
-            .map(|s| s.parse::<u32>().unwrap()).collect();
-        let mut boards = vec![];
-
-        while let Some(_) = it.next() {
-            let mut board = Vec::with_capacity(25);
-            for _ in 0..5 {
-                board.extend(it.next().unwrap().split(' ').filter(|s| s.len() > 0)
-                .map(|s| (false, s.parse::<u32>().unwrap())));
-            }
-            boards.push(board);
+        for i in 0..boards.capacity() {
+            boards.push(input[(2 + i * 6)..(7 + i * 6)].iter()
+                .flat_map(|s| s.split(' ').filter_map(|t| (t.len() > 0).then(|| t.parse().ok())))
+                .collect());
         }
 
         Bingo {
@@ -63,25 +57,21 @@ impl Bingo {
     /// Draws a number, marks it off on all boards, and returns it. If there are no more numbers to
     /// be drawn, returns `None`.
     fn draw_number(&mut self) -> Option<u32> {
-        if let Some(number) = self.draws.pop_front() {
-            for board in self.boards.iter_mut() {
-                for (marked, value) in board.iter_mut() {
-                    if number == *value {
-                        *marked = true;
-                    }
+        self.draws.pop_front().map(|number| {
+            for value in self.boards.iter_mut().flat_map(|b| b.iter_mut()) {
+                if value.is_some() && number == value.unwrap() {
+                    *value = None;
                 }
             }
 
-            Some(number)
-        } else {
-            None
-        }
+            number
+        })
     }
 
     /// Returns the index of the first board that's finished, or `None` if there are none yet.
     fn find_finished_board(&self) -> Option<usize> {
         for i in 0..self.boards.len() {
-            let marked = |&n: &usize| self.boards[i][n].0;
+            let marked = |&n: &usize| self.boards[i][n].is_none();
 
             for d in 0..5 {
                 // horizontal
