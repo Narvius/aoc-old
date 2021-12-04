@@ -40,12 +40,11 @@ impl Bingo {
     /// Parses `input` into a `Bingo` game.
     fn from_input(input: &[&str]) -> Bingo {
         let draws: VecDeque<_> = input[0].split(',').map(|s| s.parse().unwrap()).collect();
-        let mut boards = Vec::with_capacity(input.len() / 6);
+        let mut boards = vec![Vec::with_capacity(25); input.len() / 6];
 
         for i in 0..boards.capacity() {
-            boards.push(input[(2 + i * 6)..(7 + i * 6)].iter()
-                .flat_map(|s| s.split(' ').filter_map(|t| (t.len() > 0).then(|| t.parse().ok())))
-                .collect());
+            boards[i].extend(input[(2 + i * 6)..(7 + i * 6)].iter()
+                .flat_map(|s| s.split(' ').filter_map(|t| (t.len() > 0).then(|| t.parse().ok()))));
         }
 
         Bingo {
