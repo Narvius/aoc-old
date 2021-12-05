@@ -34,8 +34,8 @@ fn parse_line(s: &str) -> Option<((i32, i32), (i32, i32))> {
         s1.next()?.parse().ok()?
     ), (
         s2.next()?.parse().ok()?,
-        s2.next()?.parse().ok()?)
-    ))
+        s2.next()?.parse().ok()?
+    )))
 }
 
 /// Given line endpoints, produces all points on that line. Only produces correct output for lines
