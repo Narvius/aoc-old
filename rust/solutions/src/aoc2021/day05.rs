@@ -11,7 +11,7 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
 }
 
 /// Shared solution code for parts 1 and 2. `include_all` decides whether all lines (`true`) or only
-/// horizontal/vertical (`false`) from the input should be used.
+/// horizontal/vertical lines (`false`) from the input should be used.
 fn part(input: &[&str], include_all: bool) -> anyhow::Result<String> {
     let lines = input.iter()
         .map(|&s| parse_line(s).unwrap())
@@ -44,14 +44,5 @@ fn points(((x1, y1), (x2, y2)): ((i32, i32), (i32, i32))) -> impl Iterator<Item 
     let dx = (x2 - x1).signum();
     let dy = (y2 - y1).signum();
     let len = (x2 - x1).abs().max((y2 - y1).abs());
-    let mut n = 0;
-    std::iter::from_fn(move || {
-        if n > len {
-            None
-        } else {
-            let result = Some((x1 + n * dx, y1 + n * dy));
-            n += 1;
-            result
-        }
-    })
+    (0..=len).map(move |n| (x1 + n * dx, y1 + n * dy))
 }
