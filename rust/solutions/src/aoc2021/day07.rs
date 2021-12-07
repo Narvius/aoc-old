@@ -17,10 +17,7 @@ fn find_best_fuel_cost(crabs: &[i32], fuel_formula: fn(i32) -> i32) -> i32 {
     let min = *crabs.iter().min().unwrap();
     let max = *crabs.iter().max().unwrap();
 
-    let mut result = i32::MAX;
-    for i in min..=max {
-        result = result.min(crabs.iter().map(|c| fuel_formula((c - i).abs())).sum());
-    }
-
-    result
+    (min..=max)
+        .map(|c| crabs.iter().map(|i| fuel_formula((c - i).abs())).sum())
+        .min().unwrap()
 }
