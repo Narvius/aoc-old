@@ -2,7 +2,7 @@
 name = "keys"
 version = "0.1.2022"
 authors = ["Philipp Lange <narvius@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "An indexing datatype for the space of Advent of Code solutions."
 
 
