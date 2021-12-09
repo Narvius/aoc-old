@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
-use std::convert::TryFrom;
 
 /// Sum the values at low points (incremented by 1).
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
