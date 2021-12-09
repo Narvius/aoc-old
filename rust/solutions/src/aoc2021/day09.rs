@@ -47,10 +47,9 @@ fn basin_size(map: &Vec<Vec<u8>>, (x, y): (usize, usize)) -> u32 {
 /// Returns the coordinate this coordinate "flows towards", ie. the lowest neighbour. Extreme
 /// values (that is, 0 and 9) "flow towards" themselves.
 fn flows_towards(map: &Vec<Vec<u8>>, (x, y): (usize, usize)) -> (usize, usize) {
-    if map[y][x] == 9 || map[y][x] == 0 {
-        (x, y)
-    } else {
-        neighbours(map, (x, y)).min_by_key(|&(x, y)| map[y][x]).unwrap_or((x, y))
+    match map[y][x] {
+        0 | 9 => (x, y),
+        _ => neighbours(map, (x, y)).min_by_key(|&(x, y)| map[y][x]).unwrap_or((x, y)),
     }
 }
 
@@ -59,10 +58,9 @@ fn flows_towards(map: &Vec<Vec<u8>>, (x, y): (usize, usize)) -> (usize, usize) {
 fn low_points<'a>(map: &'a Vec<Vec<u8>>) -> impl Iterator<Item = (usize, usize)> + 'a {
     (0..map[0].len()).cartesian_product(0..map.len())
         .filter(move |&(x, y)| {
-            if let Some(&v) = map.get(y).and_then(|xs| xs.get(x)) {
-                neighbours(map, (x, y)).all(|(x, y)| v < map[y][x])
-            } else {
-                false
+            match map.get(y).and_then(|xs| xs.get(x)) {
+                Some(&v) => neighbours(map, (x, y)).all(|(x, y)| v < map[y][x]),
+                _ => false,
             }
         })
 }
