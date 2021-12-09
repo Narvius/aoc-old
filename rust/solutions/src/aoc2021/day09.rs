@@ -44,10 +44,10 @@ fn basin_size(map: &Vec<Vec<u8>>, (x, y): (usize, usize)) -> u32 {
     basin.len() as u32
 }
 
-/// Returns the coordinate this coordinate "flows towards", ie. the lowest neighbour. Produces
-/// incorrect results for low points.
+/// Returns the coordinate this coordinate "flows towards", ie. the lowest neighbour. Extreme
+/// values (that is, 0 and 9) "flow towards" themselves.
 fn flows_towards(map: &Vec<Vec<u8>>, (x, y): (usize, usize)) -> (usize, usize) {
-    if map[y][x] == 9 {
+    if map[y][x] == 9 || map[y][x] == 0 {
         (x, y)
     } else {
         neighbours(map, (x, y)).min_by_key(|&(x, y)| map[y][x]).unwrap_or((x, y))
