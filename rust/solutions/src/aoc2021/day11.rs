@@ -7,11 +7,9 @@ pub fn part1(input: &[&str]) -> anyhow::Result<String> {
         .map(|s| s.as_bytes().into_iter().map(|b| b - b'0').collect()).collect();
     
     let mut flashes = 0;
-
     for _ in 0..100 {
         flashes += step(&mut map);
     }
-    
     Ok(flashes.to_string())
 }
 
