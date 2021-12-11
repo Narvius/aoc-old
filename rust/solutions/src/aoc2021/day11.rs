@@ -42,7 +42,7 @@ fn step(map: &mut Vec<Vec<u8>>) -> usize {
 
     while let Some(p) = queue.pop() {
         for (x, y) in neighbours(map[0].len(), map.len(), p) {
-            map[y][x] = map[y][x].saturating_add(1);
+            map[y][x] += 1;
             if map[y][x] > 9 && !found.contains(&(x, y)) {
                 found.insert((x, y));
                 queue.push((x, y));
