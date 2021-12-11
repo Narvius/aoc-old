@@ -18,13 +18,13 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     let mut map: Vec<Vec<u8>> = input.into_iter()
         .map(|s| s.as_bytes().into_iter().map(|b| b - b'0').collect()).collect();
     
-    let mut steps = 0;
-    loop {
-        steps += 1;
+    for steps in 1.. {
         if step(&mut map) == map.len() * map[0].len() {
             return Ok(steps.to_string());
         }
     }
+
+    unreachable!()
 }
 
 /// Steps the octopus simulation once and returns the number of flashes that occurred.
