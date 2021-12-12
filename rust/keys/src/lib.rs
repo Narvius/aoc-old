@@ -11,7 +11,9 @@ pub fn all_keys() -> impl Iterator<Item = Key> {
     let days = Day::into_enum_iter();
     let parts = Part::into_enum_iter();
 
-    events.cartesian_product(days).cartesian_product(parts)
+    events
+        .cartesian_product(days)
+        .cartesian_product(parts)
         .map(|((event, day), part)| Key { event, day, part })
 }
 
@@ -27,7 +29,9 @@ pub struct Key {
 }
 
 /// A specific Advent of Code event.
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive)]
+#[derive(
+    Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive,
+)]
 #[repr(u16)]
 pub enum Event {
     AoC2015 = 2015,
@@ -41,7 +45,9 @@ pub enum Event {
 }
 
 /// A day of an Advent of Code event.
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive)]
+#[derive(
+    Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive,
+)]
 #[repr(u8)]
 pub enum Day {
     Day01 = 1,
@@ -72,7 +78,9 @@ pub enum Day {
 }
 
 /// A part of an Advent of Code day.
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive)]
+#[derive(
+    Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive,
+)]
 #[repr(u8)]
 pub enum Part {
     One = 1,

@@ -1,8 +1,8 @@
 //! A proc-macro responsible for automatically including solution files, mapping solution files to
 //! data files, as well as making solutions indexable via [`keys::Key`]s.
-//! 
+//!
 //! It assumes that the solutions crate depends on `anyhow`, as well as the following file layout:
-//! 
+//!
 //! lib.rs
 //! aoc2015/
 //!   day01.rs
@@ -12,12 +12,12 @@
 //!   ...
 //! aocXXXX/
 //!   ...
-//! 
+//!
 //! Then, put `autokey::events!("src");` in lib.rs, and the aforementioned `mod`s and helper
 //! functions will be generated in it.
-//! 
+//!
 //! It is assumed solution files contain two functions with these names and signatures:
-//! 
+//!
 //! ```
 //! pub fn part1(_input: &[&str]) -> anyhow::Result<String> {
 //!     Err(anyhow::anyhow!("unimplemented"))
@@ -27,9 +27,9 @@
 //!     Err(anyhow::anyhow!("unimplemented"))
 //! }
 //! ```
-//! 
+//!
 //! These correspond to the two parts of an Advent of Code task.
-//! 
+//!
 //! Majority of the code is stolen straight from https://github.com/dtolnay/automod, and from there
 //! kludged into place by trial-and-error.
 
@@ -56,7 +56,7 @@ impl Parse for Arg {
 }
 
 /// Automatically includes all AoC solution files with the appropriate 'mod' directives, and
-/// generates a 'get_solutions' 
+/// generates a 'get_solutions'
 #[proc_macro]
 pub fn events(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Arg);
@@ -70,8 +70,15 @@ pub fn events(input: TokenStream) -> TokenStream {
     let rel_path = input.path.value();
 
     let expanded = match event_folder_names(dir) {
-        Ok(names) => names.clone().into_iter().map(|name| event_item(&name, &rel_path)).chain(std::iter::once(event_indexer(names))).collect::<TokenStream>(),
-        Err(err) => syn::Error::new(input.path.span(), err).into_compile_error().into(),
+        Ok(names) => names
+            .clone()
+            .into_iter()
+            .map(|name| event_item(&name, &rel_path))
+            .chain(std::iter::once(event_indexer(names)))
+            .collect::<TokenStream>(),
+        Err(err) => syn::Error::new(input.path.span(), err)
+            .into_compile_error()
+            .into(),
     };
 
     TokenStream::from(expanded)
@@ -92,8 +99,15 @@ pub fn days(input: TokenStream) -> TokenStream {
     let folder = rel_path.split('/').last().unwrap();
 
     let expanded = match source_file_names(dir) {
-        Ok(names) => names.clone().into_iter().map(|name| day_item(&name)).chain(std::iter::once(day_indexer(names, folder))).collect::<TokenStream>(),
-        Err(err) => syn::Error::new(input.path.span(), err).into_compile_error().into(),
+        Ok(names) => names
+            .clone()
+            .into_iter()
+            .map(|name| day_item(&name))
+            .chain(std::iter::once(day_indexer(names, folder)))
+            .collect::<TokenStream>(),
+        Err(err) => syn::Error::new(input.path.span(), err)
+            .into_compile_error()
+            .into(),
     };
 
     TokenStream::from(expanded)
@@ -107,7 +121,8 @@ fn event_item(name: &str, path: &str) -> TokenStream {
 
     (quote::quote! {
         mod #ident { autokey::days!(#path); }
-    }).into()
+    })
+    .into()
 }
 
 /// Generates:
@@ -122,13 +137,16 @@ fn event_item(name: &str, path: &str) -> TokenStream {
 /// ```
 /// for all events that have an "aocXXXX" folder.
 fn event_indexer(names: Vec<String>) -> TokenStream {
-    let items: Vec<_> = names.into_iter().map(|name| {
-        let pat = quote::format_ident!("AoC{}", &name[3..]);
-        let fn_ident = quote::format_ident!("aoc{}", &name[3..]);
-        let call = quote::quote! { #fn_ident::get_solution(key.day, key.part) };
+    let items: Vec<_> = names
+        .into_iter()
+        .map(|name| {
+            let pat = quote::format_ident!("AoC{}", &name[3..]);
+            let fn_ident = quote::format_ident!("aoc{}", &name[3..]);
+            let call = quote::quote! { #fn_ident::get_solution(key.day, key.part) };
 
-        quote::quote! { keys::Event::#pat => #call }
-    }).collect();
+            quote::quote! { keys::Event::#pat => #call }
+        })
+        .collect();
 
     (quote::quote! {
         pub fn get_solution(key: keys::Key) -> Option<(fn(&[&str]) -> anyhow::Result<String>, &'static str)> {
@@ -152,7 +170,11 @@ fn event_folder_names<P: AsRef<Path>>(dir: P) -> Result<Vec<String>> {
         }
 
         match entry.file_name().into_string() {
-            Ok(name) => if name.starts_with("aoc") { names.push(name) },
+            Ok(name) => {
+                if name.starts_with("aoc") {
+                    names.push(name)
+                }
+            }
             Err(err) => failures.push(err),
         }
     }
@@ -175,7 +197,8 @@ fn day_item(name: &str) -> TokenStream {
     let ident = syn::Ident::new(name.split('.').next().unwrap(), Span::call_site().into());
     (quote::quote! {
         pub mod #ident;
-    }).into()
+    })
+    .into()
 }
 
 /// Generates:
@@ -199,7 +222,7 @@ fn day_indexer(names: Vec<String>, folder: &str) -> TokenStream {
             .join("data")
             .join(folder)
             .join(&format!("day{:02}.txt", &name[3..]));
-        
+
         let data_file = format!("{}", data_file.display());
 
         let pat_ident = quote::format_ident!("Day{:02}", &name[3..]);
