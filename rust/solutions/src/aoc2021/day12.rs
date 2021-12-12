@@ -20,6 +20,10 @@ struct Graph<'a> {
 impl<'a> Graph<'a> {
     /// Parses the puzzle input into a graph.
     fn from_input(input: &[&'a str]) -> Graph<'a> {
+        fn index<T: PartialEq>(v: &Vec<T>, item: &T) -> usize {
+            v.iter().position(|t| t == item).unwrap()
+        }
+
         let mut nodes = vec![];
         let mut edges = vec![];
         for &line in input {
@@ -30,27 +34,12 @@ impl<'a> Graph<'a> {
                     edges.push(vec![]);
                 }
             }
-            if !nodes.contains(&a) {
-                nodes.push(a);
-            }
-            if !nodes.contains(&b) {
-                nodes.push(b);
-            }
-            let ap = nodes.iter().position(|&x| x == a).unwrap();
-            let bp = nodes.iter().position(|&x| x == b).unwrap();
-            edges[ap].push(bp);
-            edges[bp].push(ap);
+            edges[index(&nodes, &a)].push(index(&nodes, &b));
+            edges[index(&nodes, &b)].push(index(&nodes, &a));
         }
 
-        let start = nodes.iter().position(|&x| x == "start").unwrap();
-        let end = nodes.iter().position(|&x| x == "end").unwrap();
-
-        Graph {
-            nodes,
-            edges,
-            start,
-            end
-        }
+        let (start, end) = (index(&nodes, &"start"), index(&nodes, &"end"));
+        Graph { nodes, edges, start, end }
     }
 
     /// Counts the number of paths that can be taken through the graph, according to the rules of
@@ -61,21 +50,20 @@ impl<'a> Graph<'a> {
     fn paths(&self, lowercase_grace: bool) -> u32 {
         // Recursively finds all paths. `open` and `grace` keep track of which nodes can be visited.
         fn sub_paths<'a>(g: &Graph<'a>, node: usize, open: &[bool], grace: bool) -> u32 {
-            if node == g.end {
-                return 1;
-            }
-
             let mut paths = 0;
             for &target in &g.edges[node] {
-                if open[target] || (grace && target != g.start) {
-                    let mut next_open = open.into_iter().copied().collect::<Vec<_>>();
-                    if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
-                        next_open[target] = false;
+                match target {
+                    target if target == g.end => paths += 1,
+                    target if open[target] || (grace && target != g.start) => {
+                        let mut next_open = open.into_iter().copied().collect::<Vec<_>>();
+                        if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
+                            next_open[target] = false;
+                        }
+                        paths += sub_paths(g, target, &next_open, grace && open[target]);
                     }
-                    paths += sub_paths(g, target, &next_open, grace && open[target]);
+                    _ => {}
                 }
             }
-
             paths
         }
         
