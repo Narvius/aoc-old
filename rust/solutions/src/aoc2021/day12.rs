@@ -49,24 +49,21 @@ impl<'a> Graph<'a> {
     /// time within a path.
     fn paths(&self, lowercase_grace: bool) -> u32 {
         // Recursively finds all paths. `open` and `grace` keep track of which nodes can be visited.
-        fn sub_paths(g: &Graph, node: usize, open: &[bool], grace: bool) -> u32 {
+        fn sub_paths(g: &Graph, node: usize, open_mask: u32, grace: bool) -> u32 {
             let mut paths = 0;
             for &target in &g.edges[node] {
-                paths += match (open[target], grace) {
+                paths += match ((open_mask & 1 << target) > 0, grace) {
                     // Reaching either 'start' or 'end' with the path terminates it.
                     _ if target == g.start => 0,
                     _ if target == g.end => 1,
                     // Small, open cave. Have to copy the "open" table, with the corresponding entry
                     // set to false.
-                    (true, _) if (b'a'..=b'z').contains(&g.nodes[target].as_bytes()[0]) => {
-                        let mut next_open = open.to_vec();
-                        next_open[target] = false;
-                        sub_paths(g, target, &next_open, grace)
-                    },
+                    (true, _) if (b'a'..=b'z').contains(&g.nodes[target].as_bytes()[0]) =>
+                        sub_paths(g, target, open_mask & !(1 << target), grace),
                     // Big, open cave. No need to modify state.
-                    (true, _) => sub_paths(g, target, open, grace),
+                    (true, _) => sub_paths(g, target, open_mask, grace),
                     // Small, closed cave, but we have a grace. Spend the grace.
-                    (_, true) => sub_paths(g, target, open, false),
+                    (_, true) => sub_paths(g, target, open_mask, false),
                     // Small, closed cave. Terminates the path.
                     _ => 0,
                 };
@@ -74,6 +71,6 @@ impl<'a> Graph<'a> {
             paths
         }
         
-        sub_paths(self, self.start, &vec![true; self.nodes.len()], lowercase_grace)
+        sub_paths(self, self.start, u32::MAX, lowercase_grace)
     }
 }
