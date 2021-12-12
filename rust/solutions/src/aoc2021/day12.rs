@@ -55,7 +55,7 @@ impl<'a> Graph<'a> {
                 match target {
                     target if target == g.end => paths += 1,
                     target if open[target] || (grace && target != g.start) => {
-                        let mut next_open = open.into_iter().copied().collect::<Vec<_>>();
+                        let mut next_open = open.to_vec();
                         if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
                             next_open[target] = false;
                         }
