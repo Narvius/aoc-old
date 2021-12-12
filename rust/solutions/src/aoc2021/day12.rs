@@ -60,9 +60,13 @@ impl<'a> Graph<'a> {
                             // We're entering a small cave, that means we have to "spend" it, thus
                             // closing it. If it's already closed, that means we're spending the
                             // grace instead.
-                            let mut next_open = open.to_vec();
-                            next_open[target] = false;
-                            sub_paths(g, target, &next_open, grace && open[target])
+                            if open[target] {
+                                let mut next_open = open.to_vec();
+                                next_open[target] = false;
+                                sub_paths(g, target, &next_open, grace)
+                            } else {
+                                sub_paths(g, target, open, false)
+                            }
                         } else {
                             sub_paths(g, target, open, grace)
                         };
