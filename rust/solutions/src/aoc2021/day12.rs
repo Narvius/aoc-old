@@ -52,22 +52,24 @@ impl<'a> Graph<'a> {
         fn sub_paths<'a>(g: &Graph<'a>, node: usize, open: &[bool], grace: bool) -> u32 {
             let mut paths = 0;
             for &target in &g.edges[node] {
-                match target {
-                    _ if target == g.end => paths += 1,
-                    _ if target == g.start => {},
-                    _ if open[target] => {
-                        // If the node is a small cave, we close it for the next recursive call.
-                        paths += if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
-                            let mut next_open = open.to_vec();
-                            next_open[target] = false;
-                            sub_paths(g, target, &next_open, grace)
-                        } else {
-                            sub_paths(g, target, open, grace)
-                        };
+                paths += match (open[target], grace) {
+                    // Reaching either 'start' or 'end' with the path terminates it.
+                    _ if target == g.start => 0,
+                    _ if target == g.end => 1,
+                    // Small, open cave. Have to copy the "open" table, with the corresponding entry
+                    // set to false.
+                    (true, _) if (b'a'..=b'z').contains(&g.nodes[target].as_bytes()[0]) =>  {
+                        let mut next_open = open.to_vec();
+                        next_open[target] = false;
+                        sub_paths(g, target, &next_open, grace)
                     },
-                    _ if grace => paths += sub_paths(g, target, open, false),
-                    _ => {}
-                }
+                    // Big, open cave. No need to modify state.
+                    (true, _) => sub_paths(g, target, open, grace),
+                    // Small, closed cave, but we have a grace. Spend the grace.
+                    (_, true) => sub_paths(g, target, open, false),
+                    // Small, closed cave. Terminates the path.
+                    _ => 0,
+                };
             }
             paths
         }
