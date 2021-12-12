@@ -53,24 +53,19 @@ impl<'a> Graph<'a> {
             let mut paths = 0;
             for &target in &g.edges[node] {
                 match target {
-                    target if target == g.end => paths += 1,
-                    target if target == g.start => {},
-                    target if open[target] || grace => {
+                    _ if target == g.end => paths += 1,
+                    _ if target == g.start => {},
+                    _ if open[target] => {
+                        // If the node is a small cave, we close it for the next recursive call.
                         paths += if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
-                            // We're entering a small cave, that means we have to "spend" it, thus
-                            // closing it. If it's already closed, that means we're spending the
-                            // grace instead.
-                            if open[target] {
-                                let mut next_open = open.to_vec();
-                                next_open[target] = false;
-                                sub_paths(g, target, &next_open, grace)
-                            } else {
-                                sub_paths(g, target, open, false)
-                            }
+                            let mut next_open = open.to_vec();
+                            next_open[target] = false;
+                            sub_paths(g, target, &next_open, grace)
                         } else {
                             sub_paths(g, target, open, grace)
                         };
-                    }
+                    },
+                    _ if grace => paths += sub_paths(g, target, open, false),
                     _ => {}
                 }
             }
