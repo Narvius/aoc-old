@@ -49,7 +49,7 @@ impl<'a> Graph<'a> {
     /// time within a path.
     fn paths(&self, lowercase_grace: bool) -> u32 {
         // Recursively finds all paths. `open` and `grace` keep track of which nodes can be visited.
-        fn sub_paths<'a>(g: &Graph<'a>, node: usize, open: &[bool], grace: bool) -> u32 {
+        fn sub_paths(g: &Graph, node: usize, open: &[bool], grace: bool) -> u32 {
             let mut paths = 0;
             for &target in &g.edges[node] {
                 paths += match (open[target], grace) {
