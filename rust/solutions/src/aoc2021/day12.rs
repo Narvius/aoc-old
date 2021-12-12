@@ -9,7 +9,7 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     Ok(Graph::from_input(input).paths(true).to_string())
 }
 
-/// Adjacency list-based graph with a start and end node.
+/// Adjacency list-based graph.
 struct Graph<'a> {
     nodes: Vec<&'a str>,
     edges: Vec<Vec<usize>>,
@@ -49,15 +49,16 @@ impl<'a> Graph<'a> {
     /// time within a path.
     fn paths(&self, lowercase_grace: bool) -> u32 {
         // Recursively finds all paths. `open` and `grace` keep track of which nodes can be visited.
-        fn sub_paths(g: &Graph, node: usize, open: &[bool], grace: bool) -> u32 {
+        fn sub_paths<'a>(g: &Graph<'a>, node: usize, open: &[bool], grace: bool) -> u32 {
             let mut paths = 0;
             for &target in &g.edges[node] {
                 match target {
                     target if target == g.end => paths += 1,
-                    target if open[target] || (grace && target != g.start) => {
+                    target if target == g.start => {},
+                    target if open[target] || grace => {
                         paths += if g.nodes[target].chars().next().unwrap().is_ascii_lowercase() {
                             // We're entering a small cave, that means we have to "spend" it, thus
-                            // closing it. If it's already closed, that means we're "spending" the
+                            // closing it. If it's already closed, that means we're spending the
                             // grace instead.
                             let mut next_open = open.to_vec();
                             next_open[target] = false;
@@ -72,8 +73,6 @@ impl<'a> Graph<'a> {
             paths
         }
         
-        let mut open = vec![true; self.nodes.len()];
-        open[self.start] = false;
-        sub_paths(self, self.start, &open, lowercase_grace)
+        sub_paths(self, self.start, &vec![true; self.nodes.len()], lowercase_grace)
     }
 }
