@@ -38,7 +38,7 @@ fn build_representation(points: &HashSet<(i32, i32)>) -> Option<String> {
 
     for y in ys {
         for x in xs.clone() {
-            output.push_str(if points.contains(&(x, y)) { "#" } else { "." });
+            output.push_str(if points.contains(&(x, y)) { "#" } else { " " });
         }
         output.push_str("\n");
     }
