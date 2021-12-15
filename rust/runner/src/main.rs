@@ -62,7 +62,7 @@ fn duration_as_string(duration: Duration) -> String {
 /// - "" (a special mode that runs only the latest day solution from the latest event)
 /// - "day"
 /// - "event day"
-/// = "event day part"
+/// - "event day part"
 /// 
 /// `event` defaults to "L" (the latest event known to the program). `day` has no default. `part`
 /// defaults to "." (all parts). You can supply a comma-separated list of numbers, "L" or "." to
