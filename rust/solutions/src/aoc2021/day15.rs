@@ -60,7 +60,7 @@ struct Seeker {
     position: (usize, usize),
 }
 
-// Seekers get sorted by cost ascending, so that the lowest cost gets popped off a binary heap
+// Seekers get sorted by cost descending, so that the lowest cost gets popped off a max-heap
 // priority queue.
 impl Ord for Seeker {
     fn cmp(&self, other: &Self) -> Ordering {
