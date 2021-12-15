@@ -19,8 +19,9 @@ fn find_risk(mut grid: Vec<Vec<u32>>) -> Option<u32> {
     seekers.push(Seeker { cost: 0, position: (0, 0) });
 
     let endpoint = (grid[0].len() - 1, grid.len() - 1);
+    // Take the lowest-cost seeker so far.
     while let Some(seeker) = seekers.pop() {
-        // Take the lowest-cost seeker so far.
+        // If a seeker is on the endpoint, it has the correct answer. See comment below.
         if seeker.position == endpoint {
             return Some(seeker.cost);
         }
