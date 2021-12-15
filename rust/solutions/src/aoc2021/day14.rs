@@ -36,7 +36,7 @@ fn score_after_steps(polymer: &[u8], rules: &HashMap<(u8, u8), u8>, steps: usize
             let mut temp = HashMap::new();
             // There are `v` of this pair. That means `v` of a new letter will spawn, and `v`
             // of two new pairs will be formed. Count all of those.
-            for (&(c1, c2), &v) in &pairs {
+            for ((c1, c2), v) in pairs {
                 let new = *rules.get(&(c1, c2)).unwrap();
                 *counts.entry(new).or_insert(0) += v;
                 *temp.entry((c1, new)).or_insert(0) += v;
