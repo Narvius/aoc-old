@@ -1,6 +1,5 @@
-use anyhow::{anyhow, Result};
-use keys::{Day, Event, Key, Part};
-use std::convert::TryFrom;
+use anyhow::Result;
+use keys::Key;
 use std::fs::File;
 use std::io::BufRead;
 use std::time::{Duration, Instant};
@@ -18,10 +17,6 @@ impl Solution {
             solution,
             data_path,
         })
-    }
-
-    pub fn from_keyspec(spec: &str) -> Option<Solution> {
-        Self::new(parse_key(spec).ok()?)
     }
 
     pub fn get_result(&self) -> (Result<String>, Duration) {
@@ -42,27 +37,5 @@ impl Solution {
         let end = Instant::now();
 
         (returned, end.duration_since(start))
-    }
-}
-
-fn parse_key(keyspec: &str) -> Result<Key> {
-    if keyspec.len() != 5 || keyspec.chars().count() != 5 {
-        Err(anyhow!("parse_key: keyspec must be 5 ASCII characters"))
-    } else {
-        let year = 2000 + keyspec[0..2].parse::<u16>()?;
-        let day = keyspec[2..4].parse::<u8>()?;
-        let part = (if keyspec.chars().nth(4).unwrap() == 'a' {
-            Ok(Part::One)
-        } else if keyspec.chars().nth(4).unwrap() == 'b' {
-            Ok(Part::Two)
-        } else {
-            Err(anyhow!("final character of keyspec must be 'a' or 'b'"))
-        })?;
-
-        Ok(Key {
-            event: Event::try_from(year)?,
-            day: Day::try_from(day)?,
-            part,
-        })
     }
 }

@@ -2,20 +2,7 @@
 //! by the `autokey` crate.
 
 use enum_iterator::IntoEnumIterator;
-use itertools::Itertools;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-
-/// Returns an iterator of all possible [`Key`]s.
-pub fn all_keys() -> impl Iterator<Item = Key> {
-    let events = Event::into_enum_iter();
-    let days = Day::into_enum_iter();
-    let parts = Part::into_enum_iter();
-
-    events
-        .cartesian_product(days)
-        .cartesian_product(parts)
-        .map(|((event, day), part)| Key { event, day, part })
-}
 
 /// An index into the space of existing Advent of Code problems.
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
@@ -41,7 +28,25 @@ pub enum Event {
     AoC2019 = 2019,
     AoC2020 = 2020,
     AoC2021 = 2021,
-    AoC2022 = 2022,
+}
+
+impl Event {
+    pub fn parse(s: &str) -> Option<Vec<Event>> {
+        let mut v = vec![];
+
+        if s == "." {
+            v.extend(Event::into_enum_iter());
+        } else if s == "L" || s == "l" {
+            v.push(Event::into_enum_iter().last().unwrap());
+        } else {
+            for item in s.split(",") {
+                let num = 2000 + item.parse::<u16>().ok()?;
+                v.push(Event::try_from(num).ok()?);
+            }
+        }
+
+        Some(v)
+    }
 }
 
 /// A day of an Advent of Code event.
@@ -77,6 +82,26 @@ pub enum Day {
     Day25 = 25,
 }
 
+impl Day {
+    pub fn parse(s: &str) -> Option<Vec<Day>> {
+        let mut v = vec![];
+
+        if s == "." {
+            v.extend(Day::into_enum_iter());
+        } else if s == "L" || s == "l" {
+            v.push(Day::into_enum_iter().last().unwrap());
+        } else {
+            for item in s.split(",") {
+                let num = item.parse::<u8>().ok()?;
+                v.push(Day::try_from(num).ok()?);
+            }
+        }
+
+        Some(v)
+    }
+}
+
+
 /// A part of an Advent of Code day.
 #[derive(
     Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive,
@@ -85,4 +110,21 @@ pub enum Day {
 pub enum Part {
     One = 1,
     Two = 2,
+}
+
+impl Part {
+    pub fn parse(s: &str) -> Option<Vec<Part>> {
+        let mut v = vec![];
+
+        if s == "." {
+            v.extend(Part::into_enum_iter());
+        } else {
+            for item in s.split(",") {
+                let num = item.parse::<u8>().ok()?;
+                v.push(Part::try_from(num).ok()?);
+            }
+        }
+
+        Some(v)
+    }
 }

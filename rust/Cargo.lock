@@ -84,7 +84,6 @@ version = "0.1.2022"
 dependencies = [
  "anyhow",
  "enum-iterator",
- "itertools",
  "num_enum",
 ]
 
@@ -178,6 +177,7 @@ name = "runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "itertools",
  "keys",
  "solutions",
 ]

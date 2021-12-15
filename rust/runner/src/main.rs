@@ -3,18 +3,20 @@
 mod solution;
 
 use crate::solution::Solution;
+use itertools::Itertools;
 use keys::Part;
 use std::time::{Duration, Instant};
 
 fn main() {
-    let solutions = solutions_from_args().unwrap();
+    let solutions = solutions_from_args().expect("could not parse arguments");
 
     let start = Instant::now();
 
     for solution in solutions {
         match solution.get_result() {
             (Ok(a), runtime) => println!(
-                "Day {:02}{}: {} (runtime: {}s)",
+                "[{}-{:02}{}]   {} (runtime: {}s)",
+                solution.key.event as u16,
                 solution.key.day as u8,
                 match solution.key.part {
                     Part::One => 'a',
@@ -24,7 +26,8 @@ fn main() {
                 duration_as_string(runtime)
             ),
             (Err(e), _) => println!(
-                "(FAILED) Day {:02}{}: {}",
+                "(FAILED) [{}-{:02}{}]   {}",
+                solution.key.event as u16,
                 solution.key.day as u8,
                 match solution.key.part {
                     Part::One => 'a',
@@ -56,24 +59,38 @@ fn duration_as_string(duration: Duration) -> String {
 fn solutions_from_args() -> Option<Vec<Solution>> {
     let args: Vec<_> = std::env::args().collect();
 
-    Some(if (args.len() == 2 && args[1] == ".") || args.len() == 1 {
-        let mut result = vec![];
-        for day in 1..=25 {
-            for c in "ab".chars() {
-                if let Some(s) = Solution::from_keyspec(&format!("21{:02}{}", day, c)) {
-                    result.push(s);
-                }
-            }
-        }
-        result
-    } else if args.len() == 2 {
-        let day = args[1].parse::<u8>().unwrap();
+    let (events, days, parts) = match args.len() {
+        2 => {
+            // One argument: day, assuming some convenient year and all parts.
+            (
+                keys::Event::parse("L")?,
+                keys::Day::parse(&args[1])?,
+                keys::Part::parse(".")?,
+            )
+        },
+        3 => {
+            // Two arguments: year and day, assuming all parts.
+            (
+                keys::Event::parse(&args[1])?,
+                keys::Day::parse(&args[2])?,
+                keys::Part::parse(".")?,
+            )
+        },
+        4 => {
+            // Three arguments: year, day and part.
+            (
+                keys::Event::parse(&args[1])?,
+                keys::Day::parse(&args[2])?,
+                keys::Part::parse(&args[3])?,
+            )
+        },
+        _ => return None,
+    };
 
-        vec![
-            Solution::from_keyspec(&format!("21{:02}a", day))?,
-            Solution::from_keyspec(&format!("21{:02}b", day))?,
-        ]
-    } else {
-        vec![]
-    })
+    Some(events.iter()
+        .cartesian_product(&days)
+        .cartesian_product(&parts)
+        .map(|((&event, &day), &part)| keys::Key { event, day, part })
+        .filter_map(|key| Solution::new(key))
+        .collect())
 }

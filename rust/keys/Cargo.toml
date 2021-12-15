@@ -11,5 +11,4 @@ description = "An indexing datatype for the space of Advent of Code solutions."
 [dependencies]
 anyhow = "1.0"
 enum-iterator = "0.7"
-itertools = "0.10"
 num_enum = "0.5.4"
