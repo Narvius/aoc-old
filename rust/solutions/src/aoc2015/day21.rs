@@ -48,7 +48,10 @@ fn all_loadouts() -> impl Iterator<Item = Loadout> {
     // Since out-of-range indices are equivalent to "no item", we use ranges that are 1 too large
     // to also capture "no gear in this slot" in the iterator. The 'correct' way would be to use
     // Option<_>, but that's too much faffing about for this.
-    [(0..5), (0..6), (0..7), (0..7)].iter().cloned().multi_cartesian_product().map(|v| (v[0], v[1], v[2], v[3]))
+    [(0..5), (0..6), (0..7), (0..7)]
+        .into_iter()
+        .multi_cartesian_product()
+        .filter_map(|v| (v[2] == 0 || v[2] != v[3]).then(|| (v[0], v[1], v[2], v[3])))
 }
 
 /// Given a shop loadout, gives you the stats it gives, as well as its cost.
@@ -61,9 +64,7 @@ fn resolve_loadout(loadout: Loadout) -> (Stats, u32) {
         WEAPONS.get(loadout.0).copied().unwrap_or((0, 0, 0)),
         ARMORS.get(loadout.1).copied().unwrap_or((0, 0, 0)),
         RINGS.get(loadout.2).copied().unwrap_or((0, 0, 0)),
-        // Shopkeep only has one of each item, so we can't buy two of the same ring.
-        // If we try to, just use a nonsense index instead.
-        RINGS.get(if loadout.2 == loadout.3 { 1000 } else { loadout.3 }).copied().unwrap_or((0, 0, 0)),
+        RINGS.get(loadout.3).copied().unwrap_or((0, 0, 0)),
     ];
 
     let (gold, atk, def) = gear.iter().copied().reduce(|(a, b, c), (d, e, f)| (a + d, b + e, c + f)).unwrap();
