@@ -17,6 +17,42 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
 /// Expands the `polymer` by the given amount of `steps`, using `rules`; then returns the difference
 /// in quantity of the most common byte and the least common byte in the output.
 fn score_after_steps(polymer: &[u8], rules: &HashMap<(u8, u8), u8>, steps: usize) -> usize {
+    let mut counts = HashMap::new();
+    let mut pairs = HashMap::new();
+
+    // Count the actual bytes in the input polymer.
+    for &c in polymer {
+        *counts.entry(c).or_insert(0) += 1;
+    }
+
+    // Find pairs that are in the input polymer.
+    for w in polymer.windows(2) {
+        *pairs.entry((w[0], w[1])).or_insert(0) += 1;
+    }
+
+    // Iteratively construct new pair lists until all steps are done.
+    for _ in 0..steps {
+        pairs = {
+            let mut temp = HashMap::new();
+            // There are `v` of this pair. That means `v` of a new letter will spawn, and `v`
+            // of two new pairs will be formed. Count all of those.
+            for (&(c1, c2), &v) in &pairs {
+                let new = *rules.get(&(c1, c2)).unwrap();
+                *counts.entry(new).or_insert(0) += v;
+                *temp.entry((c1, new)).or_insert(0) += v;
+                *temp.entry((new, c2)).or_insert(0) += v;
+            }
+            temp
+        }
+    }
+
+    counts.values().max().unwrap() - counts.values().min().unwrap()
+}
+
+/// Expands the `polymer` by the given amount of `steps`, using `rules`; then returns the difference
+/// in quantity of the most common byte and the least common byte in the output.
+#[allow(dead_code)]
+fn score_after_steps_old(polymer: &[u8], rules: &HashMap<(u8, u8), u8>, steps: usize) -> usize {
     // Counts the characters resulting from expanding one `pair`, `steps` amount of times. The
     // result is stored in `counts`. This is hugely recursive, and results for computed subtrees
     // are memoized into `cache`.
