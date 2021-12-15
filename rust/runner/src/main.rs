@@ -26,7 +26,7 @@ fn main() {
                 duration_as_string(runtime)
             ),
             (Err(e), _) => println!(
-                "(FAILED) [{}-{:02}{}]   {}",
+                "[{}-{:02}{}]   FAILED: {}",
                 solution.key.event as u16,
                 solution.key.day as u8,
                 match solution.key.part {
@@ -56,34 +56,56 @@ fn duration_as_string(duration: Duration) -> String {
     }
 }
 
+/// Reads command line arguments and returns the relevant solutions. The program accepts between
+/// 0 and 3 (inclusive) arguments, and the meaning changes depending on the amount.
+/// 
+/// - "" (a special mode that runs only the latest day solution from the latest event)
+/// - "day"
+/// - "event day"
+/// = "event day part"
+/// 
+/// `event` defaults to "L" (the latest event known to the program). `day` has no default. `part`
+/// defaults to "." (all parts). You can supply a comma-separated list of numbers, "L" or "." to
+/// each argument.
+/// 
+/// `event` expects numbers in the range from 15 (AoC2015) and up; `day` expects numbers in the
+/// range from 1 to 25 (inclusive); `part` expects a 1 or 2.
+/// 
+/// When a list or "." are provided in multiple arguments, all possible combinations of those lists
+/// will be run.
 fn solutions_from_args() -> Option<Vec<Solution>> {
     let args: Vec<_> = std::env::args().collect();
 
     let (events, days, parts) = match args.len() {
-        2 => {
+        1 => {
+            // No argument. Run the highest day solution available from the default event (the
+            // as if you supplied "L" for the year).
+            let event = keys::Event::parse("L")?;
+            let mut days = keys::Day::parse(".")?;
+            days.retain(|&d| Solution::new(keys::Key { event: event[0], day: d, part: Part::One }).is_some());
+            days.reverse();
+            days.truncate(1);
+
+            (event, days, keys::Part::parse(".")?)
+        },
+        2 => (
             // One argument: day, assuming some convenient year and all parts.
-            (
-                keys::Event::parse("L")?,
-                keys::Day::parse(&args[1])?,
-                keys::Part::parse(".")?,
-            )
-        },
-        3 => {
+            keys::Event::parse("L")?,
+            keys::Day::parse(&args[1])?,
+            keys::Part::parse(".")?,
+        ),
+        3 => (
             // Two arguments: year and day, assuming all parts.
-            (
-                keys::Event::parse(&args[1])?,
-                keys::Day::parse(&args[2])?,
-                keys::Part::parse(".")?,
-            )
-        },
-        4 => {
+            keys::Event::parse(&args[1])?,
+            keys::Day::parse(&args[2])?,
+            keys::Part::parse(".")?,
+        ),
+        4 => (
             // Three arguments: year, day and part.
-            (
-                keys::Event::parse(&args[1])?,
-                keys::Day::parse(&args[2])?,
-                keys::Part::parse(&args[3])?,
-            )
-        },
+            keys::Event::parse(&args[1])?,
+            keys::Day::parse(&args[2])?,
+            keys::Part::parse(&args[3])?,
+        ),
         _ => return None,
     };
 
@@ -91,6 +113,6 @@ fn solutions_from_args() -> Option<Vec<Solution>> {
         .cartesian_product(&days)
         .cartesian_product(&parts)
         .map(|((&event, &day), &part)| keys::Key { event, day, part })
-        .filter_map(|key| Solution::new(key))
+        .filter_map(Solution::new)
         .collect())
 }
