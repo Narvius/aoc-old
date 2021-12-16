@@ -43,7 +43,7 @@ fn code_from_keypad_and_sequences(
                 _ => pos,
             };
 
-            if let Some(_) = keypad.get(&next) {
+            if keypad.contains_key(&next) {
                 pos = next;
             }
         }
