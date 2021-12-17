@@ -46,7 +46,7 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
         }
     }
 
-    // If a step range for a set of X velocities and Y velocities overlap, that means we can use
+    // If step ranges for a set of X velocities and Y velocities overlap, that means we can use
     // any combination of those X and Y velocities to get a valid initial velocity. The size of
     // of the cartesian product of two sets is the product of the sizes of those sets.
     let mut count = 0;
@@ -61,26 +61,23 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
 /// Returns the range of steps during which the X coordinate is within the target for the given
 /// initial velocity. Because horizontal velocity can reach 0, it is possible that we stay in the
 /// target forever; in that case the returned step range has no upper bound.
-fn step_range_for_x(initial: i32, target: (i32, i32)) -> Option<(i32, Option<i32>)> {
+fn step_range_for_x(mut velocity: i32, target: (i32, i32)) -> Option<(i32, Option<i32>)> {
     let mut distance = 0;
-    let mut x = initial;
     let mut steps = 0;
     let mut min = None;
 
     loop {
-        distance += x;
-        x -= x.signum();
+        distance += velocity;
+        velocity -= velocity.signum();
         steps += 1;
 
-        match (min.is_some(), target.0 <= distance, distance <= target.1, x == 0) {
+        match (min.is_some(), target.0 <= distance, distance <= target.1, velocity == 0) {
             // Entered the target.
             (false, true, true, _) => min = Some(steps),
             // Passed the target.
             (_, true, false, _) => return min.map(|a| (a, Some(steps - 1))),
-            // Stopped moving in the target.
-            (_, true, true, true) => return min.map(|a| (a, None)),
-            // Stopped moving before the target.
-            (_, _, _, true) => return None,
+            // Stopped moving.
+            (_, _, _, true) => return min.map(|a| (a, None)),
             // Nothing special happened, carry on.
             _ => {},
         }
@@ -89,15 +86,14 @@ fn step_range_for_x(initial: i32, target: (i32, i32)) -> Option<(i32, Option<i32
 
 /// Returns the range of steps during which the Y coordinate is within the target for the given
 /// initial velocity.
-fn step_range_for_y(initial: i32, target: (i32, i32)) -> Option<(i32, i32)> {
+fn step_range_for_y(mut velocity: i32, target: (i32, i32)) -> Option<(i32, i32)> {
     let mut distance = 0;
-    let mut y = initial;
     let mut steps = 0;
     let mut min = None;
 
     loop {
-        distance += y;
-        y -= 1;
+        distance += velocity;
+        velocity -= 1;
         steps += 1;
 
         match (min.is_some(), target.0 <= distance, distance <= target.1) {
