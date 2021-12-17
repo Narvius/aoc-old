@@ -18,3 +18,16 @@ where
     }
     found
 }
+
+pub fn mapped_sum<T, N, F>(items: &[T], mut f: F) -> Option<N>
+where
+    N: std::ops::Add<Output = N>,
+    F: FnMut(&T) -> N,
+{
+    let mut items = items.into_iter();
+    let mut result = items.next().map(&mut f)?;
+    for item in items {
+        result = result + f(item);
+    }
+    Some(result)
+}
