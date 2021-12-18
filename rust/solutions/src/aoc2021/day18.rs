@@ -84,22 +84,16 @@ fn add_expressions(mut lhs: Vec<Atom>, rhs: Vec<Atom>) -> Vec<Atom> {
     lhs.insert(0, Atom::OpenPair);
     lhs.extend(rhs);
     lhs.push(Atom::ClosePair);
-    reduce_fully(&mut lhs);
-    lhs
-}
-
-/// Explodes pairs and splits atoms in the snailfish number until no more interactions can occur.
-fn reduce_fully(atoms: &mut Vec<Atom>) {
     loop {
-        if explode_once(atoms) {
+        if explode_once(&mut lhs) {
             continue;
         }
 
-        if split_once(atoms) {
+        if split_once(&mut lhs) {
             continue;
         }
 
-        break;
+        return lhs;
     }
 }
 
