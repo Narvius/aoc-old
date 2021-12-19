@@ -1,15 +1,25 @@
 /// Sum up all the snailfish numbers in the input, find the magnitude of the result.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
-    let expressions = parse(input);
-    let final_expression = expressions.into_iter().reduce(add_expressions);
-    
-    Ok(magnitude(&final_expression.unwrap()).to_string())
+    let mut expressions = input
+        .into_iter()
+        .copied()
+        .map(Expr::from_input)
+        .collect::<Vec<_>>();
+    let mut result = expressions.remove(0);
+    for expr in expressions.iter() {
+        result = Expr::add(&result, expr);
+    }
+    Ok(result.magnitude().to_string())
 }
 
 /// Find the highest magnitude obtainable from adding any two different snailfish numbers from the
 /// input.
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
-    let expressions = parse(input);
+    let expressions = input
+        .into_iter()
+        .copied()
+        .map(Expr::from_input)
+        .collect::<Vec<_>>();
 
     let mut best = 0;
     for i in 0..expressions.len() {
@@ -17,159 +27,191 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
             if i == j {
                 continue;
             }
-            best = best.max(magnitude(&add_expressions(expressions[i].clone(), expressions[j].clone())));
+            best = best.max(Expr::add(&expressions[i], &expressions[j]).magnitude());
         }
     }
     Ok(best.to_string())
 }
 
-/// A single token of a snailfish number. A snailfish number is simply a sequence of these, with
-/// the property that a "pair" has the shape of `[OpenPair, child, child, ClosePair]`, where `child`
-/// is either a `Literal(n)` or another pair with the same shape.
-#[derive(Clone, Copy)]
-enum Atom {
-    OpenPair,
-    Literal(u8),
-    ClosePair,
+/// A node of an `Expr` binary tree.
+#[derive(Copy, Clone)]
+enum Node {
+    /// An null value for a node.
+    Empty,
+    /// A tree node that has children.
+    Pair,
+    /// A leaf node with a numeric value.
+    Value(u8),
 }
 
-impl Atom {
-    /// If this is a literal atom, returns the value; otherwise, panics.
-    fn unwrap_literal(self) -> u8 {
-        match self {
-            Atom::OpenPair => panic!("attempted to unwrap an OpenPair"),
-            Atom::Literal(n) => n,
-            Atom::ClosePair => panic!("attempted to unwrap a ClosePair"),
-        }
-    }
+/// An array-based binary tree with `Node` as a node type.
+struct Expr {
+    nodes: [Node; 127],
 }
 
-/// Calculates the magnitude of a snailfish number.
-fn magnitude(atoms: &[Atom]) -> u64 {
-    fn closing_index(atoms: &[Atom], start: usize) -> usize {
-        let mut depth = 0;
-        for i in start + 1.. {
-            match atoms[i] {
-                Atom::OpenPair => depth += 1,
-                Atom::ClosePair if depth == 0 => return i,
-                Atom::ClosePair => depth -= 1,
-                _ => {},
-            }
-        }
-        panic!("malformed expression")
-    }
+impl Expr {
+    /// Parses a line of puzzle input into a binary tree.
+    fn from_input(s: &str) -> Self {
+        let mut expr = Self {
+            nodes: [Node::Empty; 127],
+        };
+        let mut i = 0;
 
-    // We're assuming the first element is an OpenPair, so content starts on atoms[1].
-    let mut left_end = 1;
-    let left_val = match atoms[1] {
-        Atom::OpenPair => {
-            left_end = closing_index(atoms, 1);
-            magnitude(&atoms[1..=left_end])
-        },
-        Atom::Literal(n) => n as u64,
-        _ => panic!("malformed expression"),
-    };
-
-    let right_val = match atoms[left_end + 1] {
-        Atom::OpenPair => magnitude(&atoms[left_end + 1..]),
-        Atom::Literal(n) => n as u64,
-        _ => panic!("malformed expression"),
-    };
-
-    3 * left_val + 2 * right_val
-}
-
-/// Adds two snailfish numbers together.
-fn add_expressions(mut lhs: Vec<Atom>, rhs: Vec<Atom>) -> Vec<Atom> {
-    lhs.insert(0, Atom::OpenPair);
-    lhs.extend(rhs);
-    lhs.push(Atom::ClosePair);
-    loop {
-        if explode_once(&mut lhs) {
-            continue;
-        }
-
-        if split_once(&mut lhs) {
-            continue;
-        }
-
-        return lhs;
-    }
-}
-
-/// Finds the first explodable pair and explodes it. For details, see the puzzle description.
-fn explode_once(atoms: &mut Vec<Atom>) -> bool {
-    let mut depth = 0;
-    for i in 0..atoms.len() {
-        // Read through the snailfish expression until we reach explode depth (if at all).
-        match atoms[i] {
-            Atom::OpenPair => depth += 1,
-            Atom::ClosePair => depth -= 1,
-            _ => {},
-        }
-
-        // We've reached explode depth. We're assuming that the slice of 4 entries starting here
-        // is a pair of two literals, because neither the puzzle input nor the operations during
-        // the puzzle produce a deeper depth.
-        if depth == 5 {
-            let removed = atoms.drain(i + 1..i + 4).collect::<Vec<_>>();
-
-            // add left number to the first number to the left
-            for j in 0..i {
-                if let Some(Atom::Literal(t)) = atoms.get_mut(i - j) {
-                    *t += removed[0].unwrap_literal();
-                    break;
-                }
-            }
-            // add right number to the first number to the right
-            for j in i + 1..atoms.len() {
-                if let Some(Atom::Literal(t)) = atoms.get_mut(j) {
-                    *t += removed[1].unwrap_literal();
-                    break;
-                }
-            }
-
-            atoms[i] = Atom::Literal(0);
-
-            return true;
-        }
-    }
-
-    false
-}
-
-/// Finds the first splittable atom (a literal with a value of 10 or more) and replaces it with
-/// a split pair.
-fn split_once(atoms: &mut Vec<Atom>) -> bool {
-    for i in 0..atoms.len() {
-        if let Atom::Literal(n) = atoms[i] {
-            // We've found an atom to explode.
-            if n >= 10 {
-                atoms[i] = Atom::OpenPair;
-                atoms.insert(i + 1, Atom::Literal(n / 2));
-                atoms.insert(i + 2, Atom::Literal((n + 1) / 2));
-                atoms.insert(i + 3, Atom::ClosePair);
-                return true;
-            }
-        }
-    }
-    false
-}
-
-/// Parses the puzzle input into a series of snailfish numbers.
-fn parse(input: &[&str]) -> Vec<Vec<Atom>> {
-    let mut result = vec![];
-    for line in input {
-        let mut expr = vec![];
-        for c in line.as_bytes() {
+        for c in s.as_bytes() {
             match c {
-                b'[' => expr.push(Atom::OpenPair),
-                b',' => {},
-                b']' => expr.push(Atom::ClosePair),
-                _ => expr.push(Atom::Literal(c - b'0'))
+                b'[' => {
+                    expr.nodes[i] = Node::Pair;
+                    i = i * 2 + 1;
+                }
+                b',' => i += 1,
+                b']' => i = (i - 1) / 2,
+                _ => expr.nodes[i] = Node::Value(c - b'0'),
             }
         }
-        result.push(expr);
+        expr
     }
-    result
+
+    /// Adds two expressions.
+    fn add(lhs: &Self, rhs: &Self) -> Self {
+        let mut expr = Self {
+            nodes: [Node::Empty; 127],
+        };
+
+        expr.nodes[0] = Node::Pair;
+
+        // Copy the left subtree into the new tree, shifted down a level.
+        let mut queue = vec![(0, 1)];
+        while let Some((source, left)) = queue.pop() {
+            expr.nodes[left] = lhs.nodes[source];
+            if let Node::Pair = lhs.nodes[source] {
+                queue.push((2 * source + 1, 2 * left + 1));
+                queue.push((2 * source + 2, 2 * left + 2));
+            }
+        }
+
+        // Copy the right subtree into the new tree, shifted down a level.
+        queue.push((0, 2));
+        while let Some((source, right)) = queue.pop() {
+            expr.nodes[right] = rhs.nodes[source];
+            if let Node::Pair = rhs.nodes[source] {
+                queue.push((2 * source + 1, 2 * right + 1));
+                queue.push((2 * source + 2, 2 * right + 2));
+            }
+        }
+
+        // Fully reduce the expression.
+        loop {
+            expr.explode();
+            if !expr.split_once() {
+                break;
+            }
+        }
+
+        expr
+    }
+
+    /// Calculates the magnitude of the entire snailfish number, as described by the puzzle.
+    fn magnitude(&self) -> u32 {
+        fn recursive_magnitude(e: &Expr, i: usize) -> u32 {
+            match e.nodes[i] {
+                Node::Pair => {
+                    3 * recursive_magnitude(e, 2 * i + 1) + 2 * recursive_magnitude(e, 2 * i + 2)
+                }
+                Node::Value(n) => n as u32,
+                _ => unreachable!(),
+            }
+        }
+
+        recursive_magnitude(self, 0)
+    }
+
+    /// Finds the closest neighbour in the binary tree according to exploding rules in the puzzle.
+    fn neighbour(&self, mut i: usize, left: bool) -> Option<usize> {
+        // Root node has no neighbours either direction.
+        if i == 0 {
+            return None;
+        }
+
+        let parity = left as usize;
+
+        // There's two options, we are either a left child or a right child. If the direction we're
+        // going matches the direction of child we are, that means we have to take the nearest value
+        // from an adjacent subtree. We can tell if we're a left child or right child by whether the
+        // index is odd (left child) or even (right child).
+
+        // That means we first have to move UP the tree until we are the opposite type of child (if
+        // we were left, until we're right, and vice versa).
+        while i % 2 == parity {
+            i = (i - 1) / 2;
+            // If we reach the root node that means that there is no adjacent subtree.
+            if i == 0 {
+                return None;
+            }
+        }
+
+        // Now we're the "correct" type of child--that is, if we're going left we're a right child,
+        // and if we're going right, we're a left child. All that's left to do is to visit our
+        // neighbour by going up once, and then down to the neighbour...
+        i = (i - 1) / 2;
+        i = i * 2 + 2 - parity;
+
+        // And finally keep drilling down if the neighbour is not a leaf.
+        while let Node::Pair = self.nodes[i] {
+            i = i * 2 + 1 + parity;
+        }
+        Some(i)
+    }
+
+    /// Explodes all pairs in this expression that are eligible for it. For details, see the puzzle
+    /// description.
+    fn explode(&mut self) {
+        // Check all depth 4 nodes if they're pairs, and if they are, explode them.
+        for i in 15..31 {
+            if let Node::Pair = self.nodes[i] {
+                if let Some(left) = self.neighbour(i, true) {
+                    self.nodes[left] = match (self.nodes[left], self.nodes[i * 2 + 1]) {
+                        (Node::Value(a), Node::Value(b)) => Node::Value(a + b),
+                        _ => unreachable!(),
+                    }
+                }
+
+                if let Some(right) = self.neighbour(i, false) {
+                    self.nodes[right] = match (self.nodes[right], self.nodes[i * 2 + 2]) {
+                        (Node::Value(a), Node::Value(b)) => Node::Value(a + b),
+                        _ => unreachable!(),
+                    }
+                }
+
+                self.nodes[i] = Node::Value(0);
+                self.nodes[2 * i + 1] = Node::Empty;
+                self.nodes[2 * i + 2] = Node::Empty;
+            }
+        }
+    }
+
+    /// Splits the leftmost value in this expression that is eligible for it. For details, see the
+    /// puzzle description. Returns whether a split took place. This is required, because a
+    /// successful split might create a new pair eligible for explosion, which takes priority over
+    /// splitting.
+    fn split_once(&mut self) -> bool {
+        let mut stack = vec![0];
+        while let Some(i) = stack.pop() {
+            match self.nodes[i] {
+                Node::Pair => {
+                    stack.push(2 * i + 2);
+                    stack.push(2 * i + 1);
+                }
+                Node::Value(n) => {
+                    if n >= 10 {
+                        self.nodes[i] = Node::Pair;
+                        self.nodes[2 * i + 1] = Node::Value(n / 2);
+                        self.nodes[2 * i + 2] = Node::Value((n + 1) / 2);
+                        return true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
+    }
 }
