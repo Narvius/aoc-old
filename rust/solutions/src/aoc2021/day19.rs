@@ -198,7 +198,7 @@ fn rotate_right(axis: Point, (x, y, z): Point) -> (i32, i32, i32) {
         (1, 0, 0) | (-1, 0, 0) => ( x, -z,  y),
         (0, 1, 0) | (0, -1, 0) => ( z,  y, -x),
         (0, 0, 1) | (0, 0, -1) => ( y, -x,  z),
-        _ => panic!("expected two an axis, got {:?}", axis),
+        _ => panic!("expected an axis, got {:?}", axis),
     }
 }
 
