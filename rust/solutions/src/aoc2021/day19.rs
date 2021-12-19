@@ -24,7 +24,7 @@ pub fn part2(input: &[&str]) -> anyhow::Result<String> {
 
 /// Given the parsed puzzle input, returns the full combined map, as well as the positions of all
 /// scanners.
-fn combine_into_one_map((mut found, mut uncertain): (Vec<Map>, Vec<Map>)) -> (Map, Vec<(i32, i32, i32)>) {
+fn combine_into_one_map((mut found, mut uncertain): (Vec<Map>, Vec<Map>)) -> (Map, Vec<Point>) {
     let mut f = 0;
     let mut positions = vec![(0, 0, 0)];
     while uncertain.len() > 0 {
@@ -51,7 +51,7 @@ fn combine_into_one_map((mut found, mut uncertain): (Vec<Map>, Vec<Map>)) -> (Ma
 /// Detects whether the given fixed scanner, and the provided uncertain scanner overlap. If so,
 /// returns a map from the uncertain scanner reoriented to the point of view of the certain scanner,
 /// as well as the position of the uncertain scanner.
-fn detect_match(fixed: &Map, uncertain: &Map) -> Option<(Map, (i32, i32, i32))> {
+fn detect_match(fixed: &Map, uncertain: &Map) -> Option<(Map, Point)> {
     for transform in Transform::iter_all() {
         // Reorient the uncertain map to the given transform.
         let map: HashSet<_> = uncertain
@@ -86,7 +86,8 @@ fn detect_match(fixed: &Map, uncertain: &Map) -> Option<(Map, (i32, i32, i32))> 
     None
 }
 
-type Map = HashSet<(i32, i32, i32)>;
+type Point = (i32, i32, i32);
+type Map = HashSet<Point>;
 
 /// Parses the puzzle input into scanner maps, treating the 0th scanner as "certain" and the others
 /// as "uncertain" with regards to their transform. The 0th scanner has the default transform.
@@ -151,89 +152,63 @@ impl Transform {
     }
 
     /// Translates a point from one transform into another.
-    fn translate_into(&self, target: Transform, mut point: (i32, i32, i32)) -> (i32, i32, i32) {
+    fn translate_into(&self, target: Transform, mut point: Point) -> Point {
         let mut transform = *self;
 
-        fn rotate(axis: Axis, transform: &mut Transform, point: &mut (i32, i32, i32)) {
-            transform.facing = axis.rotate_right(transform.facing);
-            transform.orientation = axis.rotate_right(transform.orientation);
-            *point = axis.rotate_right(*point);
+        fn rotate(axis: Point, transform: &mut Transform, point: &mut Point) {
+            transform.facing = rotate_right(axis, transform.facing);
+            transform.orientation = rotate_right(axis, transform.orientation);
+            *point = rotate_right(axis, *point);
         }
 
         // step 1: rotate facing so it matches the target. If it already matches, we do nothing;
         // otherwise we rotate right once around the third axis.
-        if Axis::from(transform.facing) != Axis::from(target.facing) {
-            let axis = Axis::from(self.facing).other(Axis::from(target.facing));
+        if !same_axis(transform.facing, target.facing) {
+            let axis = other_axis(self.facing, target.facing);
             rotate(axis, &mut transform, &mut point);
         }
 
         // step 2: if the facing is on the right axis but flipped around wrong, we need to rotate
         // twice around any of the other axes.
         if transform.facing != target.facing {
-            let axis = Axis::from(transform.facing).next();
+            let axis = next_axis(transform.facing);
             rotate(axis, &mut transform, &mut point);
             rotate(axis, &mut transform, &mut point);
         }
 
         // step 3: facing now matches correctly. The only thing left is to rotate around the facing
         // axis until the orientation agrees as well.
-        let axis = Axis::from(transform.facing);
         while transform.orientation != target.orientation {
-            rotate(axis, &mut transform, &mut point);
+            rotate(transform.facing, &mut transform, &mut point);
         }
 
         point
     }
 }
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
-enum Axis {
-    X,
-    Y,
-    Z,
+/// Returns whether two vectors are the same axis. Undefined result for vectors that are not
+/// parallel to one of the axes.
+fn same_axis((ax, ay, az): Point, (bx, by, bz): Point) -> bool {
+    (ax != 0 && bx != 0) || (ay != 0 && by != 0) || (az != 0 && bz != 0)
 }
 
-impl Axis {
-    fn from(p: (i32, i32, i32)) -> Axis {
-        match p {
-            (1, 0, 0) | (-1, 0, 0) => Axis::X,
-            (0, 1, 0) | (0, -1, 0) => Axis::Y,
-            (0, 0, 1) | (0, 0, -1) => Axis::Z,
-            _ => panic!("({}, {}, {}) is not an axis", p.0, p.1, p.2),
-        }
+/// Rotates a vector (point) around the given axis to the right by 90 degrees.
+fn rotate_right(axis: Point, (x, y, z): Point) -> (i32, i32, i32) {
+    match axis {
+        (1, 0, 0) | (-1, 0, 0) => ( x, -z,  y),
+        (0, 1, 0) | (0, -1, 0) => ( z,  y, -x),
+        (0, 0, 1) | (0, 0, -1) => ( y, -x,  z),
+        _ => panic!("expected two an axis, got {:?}", axis),
     }
+}
 
-    /// Rotates a vector (point) around the given axis to the right by 90 degrees.
-    fn rotate_right(self, (x, y, z): (i32, i32, i32)) -> (i32, i32, i32) {
-        match self {
-            Axis::X => ( x, -z,  y),
-            Axis::Y => ( z,  y, -x),
-            Axis::Z => ( y, -x,  z),
-        }
-    }
+/// Returns the next axis after this one.
+fn next_axis((x, y, z): Point) -> Point {
+    (z, x, y)
+}
 
-    /// Returns the next axis after this one.
-    fn next(self) -> Axis {
-        match self {
-            Axis::X => Axis::Y,
-            Axis::Y => Axis::Z,
-            Axis::Z => Axis::X,
-        }
-    }
-
-    /// Returns an axis that is not equal to `a1` or `a2`. If there's multiple options, the answer
-    /// is the first one from the list `[x, y, z]` that works.
-    fn other(self, a: Axis) -> Axis {
-        match (self, a) {
-            (Axis::X, Axis::X) => Axis::Y,
-            (Axis::X, Axis::Y) => Axis::Z,
-            (Axis::X, Axis::Z) => Axis::Y,
-            (Axis::Y, Axis::X) => Axis::Z,
-            (Axis::Y, Axis::Y) => Axis::X,
-            (Axis::Y, Axis::Z) => Axis::X,
-            (Axis::Z, Axis::X) => Axis::Y,
-            (Axis::Z, Axis::Y) => Axis::X,
-            (Axis::Z, Axis::Z) => Axis::X,
-        }
-    }
+/// Returns an axis that is not equal to `a1` or `a2`. If there's multiple options, the answer
+/// is the first one from the list `[x, y, z]` that works.
+fn other_axis((ax, ay, az): Point, (bx, by, bz): Point) -> Point {
+    (1 - ax.abs() - bx.abs(), 1 - ay.abs() - by.abs(), 1 - az.abs() - bz.abs())
 }
