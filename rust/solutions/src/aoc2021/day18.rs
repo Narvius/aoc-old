@@ -46,14 +46,14 @@ enum Node {
 
 /// An array-based binary tree with `Node` as a node type.
 struct Expr {
-    nodes: [Node; 127],
+    nodes: [Node; 63],
 }
 
 impl Expr {
     /// Parses a line of puzzle input into a binary tree.
     fn from_input(s: &str) -> Self {
         let mut expr = Self {
-            nodes: [Node::Empty; 127],
+            nodes: [Node::Empty; 63],
         };
         let mut i = 0;
 
@@ -74,7 +74,7 @@ impl Expr {
     /// Adds two expressions.
     fn add(lhs: &Self, rhs: &Self) -> Self {
         let mut expr = Self {
-            nodes: [Node::Empty; 127],
+            nodes: [Node::Empty; 63],
         };
 
         expr.nodes[0] = Node::Pair;
