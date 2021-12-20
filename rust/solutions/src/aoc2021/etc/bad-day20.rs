@@ -1,48 +1,44 @@
-// [2021-20a]   5619 (runtime: 0.111s)
-// [2021-20b]   20122 (runtime: 5.909s)
+use std::collections::HashSet;
 
 /// Count the number of lit pixels after 2 iterations of the enhancing algorithm.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
-    Ok(Image::pixels_after_iterations(input, 2).to_string())
+    let mut image = Image::from_input(&input[2..]).unwrap();
+    image.enhance(input[0].as_bytes());
+    image.enhance(input[0].as_bytes());
+    Ok(image.data.len().to_string())
 }
 
 /// Count the number of lit pixels after 50 iterations of the enhancing algorithm.
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
-    Ok(Image::pixels_after_iterations(input, 50).to_string())
+    let mut image = Image::from_input(&input[2..]).unwrap();
+    for _ in 0..50 {
+        image.enhance(input[0].as_bytes());
+    }
+    Ok(image.data.len().to_string())
 }
+
+type Point = (i32, i32);
 
 /// An image as per the puzzle description.
 struct Image {
     /// The actual image data.
-    data: Vec<bool>,
-
-    /// Actual dimensions of preallocated arena.
-    dimensions: (usize, usize),
+    data: HashSet<Point>,
     
     /// A second space that is written to, so as to not invalidate future reads within the same
     /// generation.
-    backbuffer: Vec<bool>,
+    backbuffer: HashSet<Point>,
 
     /// The rectangle within which points are uncertain, as a pair of top left point and size.
-    active_rect: ((usize, usize), (usize, usize)),
+    active_rect: ((i32, i32), (i32, i32)),
 
     /// Whether tiles outside the `active_rect` are lit up.
     outside: bool,
 }
 
 impl Image {
-    /// Expands the image in the puzzle the given amount of times using the enhancing algorithm also
-    /// found in the puzzle input; and returns the number of pixels that are lit at the end.
-    fn pixels_after_iterations(input: &[&str], iterations: usize) -> u32 {
-        let mut image = Image::from_input(&input[2..], iterations + 1).unwrap();
-        for _ in 0..iterations {
-            image.enhance(input[0].as_bytes());
-        }
-        image.data.into_iter().filter(|&b| b).count() as u32
-    }
-
     /// Applies one iteration of the enhancing algorithm to the image.
     fn enhance(&mut self, algo: &[u8]) {
+        self.backbuffer.clear();
         self.widen_active_rect();
         let ((x0, y0), (w, h)) = self.active_rect;
         for y in y0..y0 + h {
@@ -65,19 +61,19 @@ impl Image {
         if self.outside {
             let ((x0, y0), (w, h)) = self.active_rect;
             for x in x0..x0 + w {
-                self.data[y0 * self.dimensions.1 + x] = true;
-                self.data[(y0 + h - 1) * self.dimensions.1 + x] = true;
+                self.data.insert((x, y0));
+                self.data.insert((x, y0 + h - 1));
             }
             for y in y0..y0 + h {
-                self.data[y * self.dimensions.1 + x0] = true;
-                self.data[y * self.dimensions.1 + (x0 + w - 1)] = true;
+                self.data.insert((x0, y));
+                self.data.insert((x0 + w - 1, y));
             }
         }
     }
 
     /// Checks the enhancing algorithm conditions for the given coordinate, and if so, writes it
     /// to the backbuffer.
-    fn add_to_backbuffer(&mut self, (x, y): (usize, usize), algo: &[u8]) {
+    fn add_to_backbuffer(&mut self, (x, y): (i32, i32), algo: &[u8]) {
         let ((x0, y0), (w, h)) = self.active_rect;
         let mut index = 0;
         for y in (y - 1)..=(y + 1) {
@@ -85,33 +81,32 @@ impl Image {
                 index *= 2;
                 let outside_active = self.outside &&
                     (x < x0 || x >= x0 + w || y < y0 || y >= y0 + h);
-                if outside_active || self.data[y * self.dimensions.1 + x] {
+                if outside_active || self.data.contains(&(x, y)) {
                     index += 1;
                 }
             }
         }
-        self.backbuffer[y * self.dimensions.1 + x] = algo[index] == b'#';
+        if algo[index] == b'#' {
+            self.backbuffer.insert((x, y));
+        }
     }
 
     /// Parses an image from the relevant block in the puzzle input.
-    fn from_input(image: &[&str], margin: usize) -> Option<Image> {
-        let (w, h) = (image[0].len(), image.len());
-        let dimensions = (2 * margin + w, 2 * margin + h);
-        let mut data = vec![false; dimensions.0 * dimensions.1];
-        let backbuffer = vec![false; dimensions.0 * dimensions.1];
-        let active_rect = ((margin, margin), (w, h));
+    fn from_input(image: &[&str]) -> Option<Image> {
+        let mut data = HashSet::new();
 
-        for y in 0..h {
-            for x in 0..w {
-                data[(y + margin) * dimensions.1 + (x + margin)] = image[y].as_bytes()[x] == b'#';
+        for y in 0..image.len() {
+            for x in 0..image[0].len() {
+                if image[y].as_bytes()[x] == b'#' {
+                    data.insert((x as i32, y as i32));
+                }
             }
         }
 
         Some(Image {
             data,
-            dimensions,
-            backbuffer,
-            active_rect,
+            backbuffer: HashSet::new(),
+            active_rect: ((0, 0), (image[0].len() as i32, image.len() as i32)),
             outside: false,
         })
     }    
