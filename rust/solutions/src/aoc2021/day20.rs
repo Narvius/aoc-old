@@ -1,6 +1,3 @@
-// [2021-20a]   5619 (runtime: 0.111s)
-// [2021-20b]   20122 (runtime: 5.909s)
-
 /// Count the number of lit pixels after 2 iterations of the enhancing algorithm.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
     Ok(Image::pixels_after_iterations(input, 2).to_string())
