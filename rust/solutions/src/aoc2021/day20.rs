@@ -20,7 +20,10 @@ struct Image {
     /// generation.
     backbuffer: Vec<bool>,
 
-    /// The rectangle within which points are uncertain, as a pair of top left point and size.
+    /// The rectangle within which points are uncertain, as a pair of top left point and size. This
+    /// rectangle is physically located within the center of the 2D image data, so that expanding
+    /// `active_rect` equally in all directions will eventually make it match
+    /// `((0, 0), dimensions)`.
     active_rect: ((usize, usize), (usize, usize)),
 
     /// Whether tiles outside the `active_rect` are lit up.
@@ -90,7 +93,10 @@ impl Image {
         self.backbuffer[y * self.dimensions.1 + x] = algo[index] == b'#';
     }
 
-    /// Parses an image from the relevant block in the puzzle input.
+    /// Parses an image from the relevant block in the puzzle input. `margin` describes how much
+    /// empty space should be allocated around the image; this is used to avoid reallocations later
+    /// in the algorithm. It should be the number of [`Image::enhance`] iterations you will call,
+    /// plus one.
     fn from_input(image: &[&str], margin: usize) -> Option<Image> {
         let (w, h) = (image[0].len(), image.len());
         let dimensions = (2 * margin + w, 2 * margin + h);
