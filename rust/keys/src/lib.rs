@@ -101,7 +101,6 @@ impl Day {
     }
 }
 
-
 /// A part of an Advent of Code day.
 #[derive(
     Copy, Clone, Debug, Eq, Hash, PartialEq, IntoEnumIterator, IntoPrimitive, TryFromPrimitive,

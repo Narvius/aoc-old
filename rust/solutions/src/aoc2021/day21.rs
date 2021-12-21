@@ -16,7 +16,9 @@ pub fn part1(input: &[&str]) -> anyhow::Result<String> {
         };
 
         rolls += 3;
-        let to_move: usize = [die + 1, (die + 1) % 100 + 1, (die + 2) % 100 + 1 ].into_iter().sum();
+        let to_move: usize = [die + 1, (die + 1) % 100 + 1, (die + 2) % 100 + 1]
+            .into_iter()
+            .sum();
 
         *p = (*p + to_move) % 10;
         *s += *p + 1;
@@ -34,7 +36,7 @@ pub fn part1(input: &[&str]) -> anyhow::Result<String> {
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     let mut universes = HashMap::from([(
         State::new(parse(input).ok_or(anyhow::anyhow!("failed to parse input"))?),
-        1
+        1,
     )]);
 
     let (mut w1, mut w2) = (0, 0);
@@ -80,7 +82,7 @@ fn split_roll(state: State) -> (usize, usize, Vec<(usize, State)>) {
     // We are spawning 27 timelines.
     // Moving by 3 (1x), 4 (3x), 5 (6x), 6 (x7), 7 (x6), 8 (x3) and 9 (x1). These are simply all
     // the possible outcomes of 3d3.
-    
+
     let (mut wins1, mut wins2, mut v) = (0, 0, vec![]);
     for (roll, times) in [(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)] {
         let mut state = state;
