@@ -15,7 +15,7 @@ fn part(input: &[&str], initialization_only: bool) -> anyhow::Result<String> {
     let mut diffs: Vec<Diff> = vec![];
     let mut to_add: Vec<Diff> = vec![];
     let mut v = parse(input)
-        .ok_or_else(|| anyhow::anyhow!("faile to parse input"))?;
+        .ok_or_else(|| anyhow::anyhow!("failed to parse input"))?;
     
     // Filter out instructions not relevant to this run.
     v.retain(|i| !initialization_only || i.is_initialization());
