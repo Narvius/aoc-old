@@ -1,7 +1,7 @@
 /// Read triangles horizontally; count possible ones.
 pub fn part1(input: &[&str]) -> anyhow::Result<String> {
     Ok(parse(input)
-        .unwrap()
+        .ok_or(anyhow::anyhow!("failed parse"))?
         .into_iter()
         .filter(|t| t.0 + t.1 > t.2 && t.1 + t.2 > t.0 && t.2 + t.0 > t.1)
         .count()
@@ -11,7 +11,7 @@ pub fn part1(input: &[&str]) -> anyhow::Result<String> {
 /// Read triangles vertically; count possible ones.
 pub fn part2(input: &[&str]) -> anyhow::Result<String> {
     Ok(parse_vertical(input)
-        .unwrap()
+        .ok_or(anyhow::anyhow!("failed parse"))?
         .into_iter()
         .filter(|t| t.0 + t.1 > t.2 && t.1 + t.2 > t.0 && t.2 + t.0 > t.1)
         .count()
